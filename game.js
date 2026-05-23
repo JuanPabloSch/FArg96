@@ -5,92 +5,94 @@ const config = {
 
 const game = new Phaser.Game(config);
 let ball, golesP1 = 0, golesCPU = 0, marcadorTexto, esTurnoP1 = true;
-let tirosRealizadosP1 = 0, tirosRealizadosCPU = 0, zonaGolCPU = -1, esperandoAtajada = false;
-let reloj, barraTiempo, fondoBarra;
+let esperandoAtajada = false, zonaGolCPU = -1, ronda = 0;
+let rectTiro, rectArquero, barraTiempo;
 
 function create() {
     this.add.rectangle(400, 150, 400, 200, 0xffffff).setStrokeStyle(4, 0x000000);
     marcadorTexto = this.add.text(400, 30, 'P1: 0 - CPU: 0', { fontSize: '32px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
-    
-    // Barra visual
-    fondoBarra = this.add.rectangle(400, 550, 200, 20, 0x555555).setVisible(false);
-    barraTiempo = this.add.rectangle(300, 550, 200, 20, 0x00ff00).setOrigin(0, 0.5).setVisible(false);
+    let fondoBarra = this.add.rectangle(400, 550, 200, 20, 0x555555);
+    barraTiempo = this.add.rectangle(300, 550, 200, 20, 0x00ff00).setOrigin(0, 0.5);
+    ball = this.add.circle(400, 500, 15, 0xffffff).setStrokeStyle(2, 0x000000);
 
-    // Cuadrícula
-    const columnas = 5, filas = 3, zonaAncho = 80, zonaAlto = 66.6;
-    for (let col = 0; col < columnas; col++) {
-        for (let row = 0; row < filas; row++) {
-            let x = 200 + (col * zonaAncho) + 40, y = 50 + (row * zonaAlto) + 33;
-            let zona = this.add.rectangle(x, y, zonaAncho, zonaAlto, 0xff0000, 0.2).setStrokeStyle(1, 0xffffff).setInteractive();
-
+    // Crear las 15 zonas del arco (5 columnas x 3 filas)
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 3; row++) {
+            let x = 200 + (col * 80) + 40, y = 50 + (row * 66.6) + 33;
+            let zona = this.add.rectangle(x, y, 80, 66.6, 0xff0000, 0.2).setStrokeStyle(1, 0xffffff).setInteractive();
+            
             zona.on('pointerdown', () => {
-                if (esTurnoP1) {
-                    if (reloj) reloj.remove();
-                    ocultarBarra();
-                    dispararPelota(this, x, y);
+                if (esTurnoP1 && !esperandoAtajada) {
+                    ejecutarDisparo(this, col, row, Math.floor(Math.random()*5), Math.floor(Math.random()*3), true);
                 } else if (esperandoAtajada) {
-                    esperandoAtajada = false;
-                    ocultarBarra();
-                    if ((row * 5 + col) === zonaGolCPU) { console.log("¡ATAJASTE!"); zona.setFillStyle(0x00ff00, 0.5); }
-                    else { console.log("¡GOL!"); zona.setFillStyle(0xff0000, 0.5); }
+                    let c = zonaGolCPU % 5, r = Math.floor(zonaGolCPU / 5);
+                    ejecutarDisparo(this, c, r, col, row, false);
                 }
             });
         }
     }
-    ball = this.add.circle(400, 500, 15, 0xffffff).setStrokeStyle(2, 0x000000);
-    iniciarTiempo(this, true); // true = turno jugador
+    iniciarBarra(this, true);
 }
 
-function ocultarBarra() {
-    fondoBarra.setVisible(false);
-    barraTiempo.setVisible(false);
-}
-
-function dispararPelota(escena, targetX, targetY) {
-    if (reloj) reloj.remove();
-    ocultarBarra();
-    
-    escena.tweens.add({
-        targets: ball, x: targetX, y: targetY, duration: 500,
-        onComplete: () => {
-            if (esTurnoP1) { if (Math.random() > 0.5) golesP1++; tirosRealizadosP1++; }
-            else { if (Math.random() > 0.5) golesCPU++; tirosRealizadosCPU++; }
-            marcadorTexto.setText(`P1: ${golesP1} - CPU: ${golesCPU}`);
-            ball.setPosition(400, 500);
-
-            if ((tirosRealizadosP1 + tirosRealizadosCPU) < 10 || golesP1 === golesCPU) {
-                esTurnoP1 = !esTurnoP1;
-                setTimeout(() => {
-                    iniciarTiempo(escena, esTurnoP1);
-                }, 1000);
-            } else alert(`Fin. Marcador: ${golesP1} - ${golesCPU}`);
-        }
-    });
-}
-
-function iniciarTiempo(escena, esTurnoJugador) {
-    fondoBarra.setVisible(true);
-    barraTiempo.setVisible(true);
-    barraTiempo.scaleX = 1;
-    barraTiempo.setFillStyle(esTurnoJugador ? 0xffff00 : 0x00ffff); // Amarillo patear, azul atajar
-
-    if (reloj) reloj.remove();
-    reloj = escena.time.addEvent({
-        delay: 3000,
-        callback: () => {
-            if (esTurnoJugador) dispararPelota(escena, 400, 150);
-            else CPUDispara(escena);
-        }
-    });
-
-    // Animación de la barra (independiente del reloj, solo visual)
+function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
     escena.tweens.killTweensOf(barraTiempo);
-    escena.tweens.add({ targets: barraTiempo, scaleX: 0, duration: 3000, ease: 'Linear' });
+    
+    // 1. FORZAMOS coordenadas dentro del arco (0 a 4, 0 a 2)
+    // Esto evita que la pelota se vaya a cualquier lugar si el valor es incorrecto
+    colT = Math.max(0, Math.min(4, colT));
+    rowT = Math.max(0, Math.min(2, rowT));
+    colA = Math.max(0, Math.min(4, colA));
+    rowA = Math.max(0, Math.min(2, rowA));
+
+    let xT = 200 + (colT * 80) + 40, yT = 50 + (rowT * 66.6) + 33;
+    let xA = 200 + (colA * 80) + 40, yA = 50 + (rowA * 66.6) + 33;
+    
+    // 2. Lógica clara: es gol si las columnas y filas NO coinciden
+    let esAtajado = (colT === colA && rowT === rowA);
+    
+    if(rectTiro) rectTiro.destroy(); 
+    if(rectArquero) rectArquero.destroy();
+    rectTiro = escena.add.rectangle(xT, yT, 80, 66.6).setStrokeStyle(4, 0x3366ff);
+    rectArquero = escena.add.rectangle(xA, yA, 80, 66.6).setStrokeStyle(4, esJugador ? 0xff6666 : 0x66ff66);
+
+    escena.tweens.add({
+        targets: ball, x: xT, y: yT, duration: 500,
+        onComplete: () => {
+            // 3. Validación estricta: si no está atajado, es gol, pero solo si es posición válida
+            if (!esAtajado) {
+                esJugador ? golesP1++ : golesCPU++;
+            }
+            
+            marcadorTexto.setText(`P1: ${golesP1} - CPU: ${golesCPU}`);
+            ball.setPosition(400, 500); // Reset pelota al centro
+            
+            if(rectTiro) rectTiro.destroy(); 
+            if(rectArquero) rectArquero.destroy();
+
+            if (esJugador) {
+                esperandoAtajada = true; esTurnoP1 = false;
+                iniciarBarra(escena, false);
+            } else {
+                esperandoAtajada = false; esTurnoP1 = true; ronda++;
+                if (ronda < 5 || golesP1 === golesCPU) {
+                    iniciarBarra(escena, true);
+                } else {
+                    alert("Final: " + golesP1 + "-" + golesCPU); 
+                    location.reload();
+                }
+            }
+        }
+    });
 }
 
-function CPUDispara(escena) {
-    let col = Math.floor(Math.random() * 5), row = Math.floor(Math.random() * 3);
-    zonaGolCPU = row * 5 + col;
-    esperandoAtajada = true;
-    dispararPelota(escena, 200 + (col * 80) + 40, 50 + (row * 66) + 33);
+function iniciarBarra(escena, esJugador) {
+    barraTiempo.scaleX = 1;
+    escena.tweens.killTweensOf(barraTiempo);
+    escena.tweens.add({ targets: barraTiempo, scaleX: 0, duration: 3000, onComplete: () => {
+        if (esJugador && !esperandoAtajada) ejecutarDisparo(escena, 2, 1, 0, 0, true);
+        else if (!esJugador) {
+            zonaGolCPU = Math.floor(Math.random() * 15);
+            ejecutarDisparo(escena, zonaGolCPU % 5, Math.floor(zonaGolCPU / 5), 2, 1, false);
+        }
+    }});
 }
