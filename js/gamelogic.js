@@ -6,46 +6,30 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
     colA = Math.max(0, Math.min(4, colA));
     rowA = Math.max(0, Math.min(2, rowA));
 
-    // Coordenadas normales del tiro dentro de la red
     let xT = 200 + (colT * 80) + 40;
     let yT = 50 + (rowT * 66.6) + 33;
     let xA = 200 + (colA * 80) + 40;
     let yA = 50 + (rowA * 66.6) + 33;
     
-    // Cálculo probabilístico del tiro (5% Palo, 10% Afuera, 85% Normal)
     let rng = Math.random();
     let tipoResultado = "NORMAL"; 
     
     if (rng < 0.05) {
         tipoResultado = "PALO";
         let elegirPalo = Math.random();
-        if (elegirPalo < 0.4) {
-            xT = 200; // Palo izquierdo
-        } else if (elegirPalo < 0.8) {
-            xT = 600; // Palo derecho
-        } else {
-            // FIX: Reemplazado Math.between por matemática nativa de JS (entre 200 y 600)
-            xT = Math.floor(Math.random() * (600 - 200 + 1)) + 200; // Travesaño superior
-            yT = 50;
-        }
+        if (elegirPalo < 0.4) { xT = 200; } 
+        else if (elegirPalo < 0.8) { xT = 600; } 
+        else { xT = Math.floor(Math.random() * (600 - 200 + 1)) + 200; yT = 50; }
     } else if (rng < 0.15) {
         tipoResultado = "AFUERA";
         let elegirAfuera = Math.random();
-        if (elegirAfuera < 0.33) {
-            // FIX: Reemplazado por matemática nativa (entre 100 y 170) Muy a la izquierda
-            xT = Math.floor(Math.random() * (170 - 100 + 1)) + 100; 
-        } else if (elegirAfuera < 0.66) {
-            // FIX: Reemplazado por matemática nativa (entre 630 y 700) Muy a la derecha
-            xT = Math.floor(Math.random() * (700 - 630 + 1)) + 630; 
-        } else {
-            // FIX: Reemplazado por matemática nativa (entre 10 y 35) Por arriba del arco
-            yT = Math.floor(Math.random() * (35 - 10 + 1)) + 10; 
-        }
+        if (elegirAfuera < 0.33) { xT = Math.floor(Math.random() * (170 - 100 + 1)) + 100; } 
+        else if (elegirAfuera < 0.66) { xT = Math.floor(Math.random() * (700 - 630 + 1)) + 630; } 
+        else { yT = Math.floor(Math.random() * (35 - 10 + 1)) + 10; }
     }
 
     let esAtajado = (colT === colA && rowT === rowA && tipoResultado === "NORMAL");
     
-    // Dibujamos las marcas fijas en las celdas lógicas originales
     if(window.rectTiro) window.rectTiro.destroy(); 
     if(window.rectArquero) window.rectArquero.destroy();
     window.rectTiro = escena.add.rectangle(200 + (colT * 80) + 40, 50 + (rowT * 66.6) + 33, 80, 66.6).setStrokeStyle(4, 0x3366ff);
@@ -67,11 +51,12 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
             
             escena.time.delayedCall(1000, () => {
                 window.ball.setPosition(400, 500);
-                dibujarHUD(escena);
+                dibujarHUD(escena); // Dibuja el círculo inmediatamente al terminar el penal
 
                 if (esJugador) {
                     window.esperandoAtajada = true; 
                     window.esTurnoP1 = false;
+                    actualizarRetratos(escena); // CAMBIO: Actualiza retratos para la CPU pateando
                     iniciarBarra(escena, false);
                 } else {
                     window.esperandoAtajada = false; 
@@ -80,9 +65,13 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
                     window.tuColA = 2; window.tuRowA = 1;
                     
                     if (verificarFinPartido()) {
-                        alert(`¡Tanda Finalizada!\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`);
-                        location.reload();
+                        // Agregamos un pequeñísimo delay para asegurar que el navegador renderice el último círculo antes del alert
+                        escena.time.delayedCall(50, () => {
+                            alert(`¡Tanda Finalizada!\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`);
+                            location.reload();
+                        });
                     } else {
+                        actualizarRetratos(escena); // CAMBIO: Actualiza retratos para tu próximo tiro
                         iniciarBarra(escena, true);
                     }
                 }

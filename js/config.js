@@ -11,7 +11,9 @@ window.marcadorTexto = null;
 window.barraTiempo = null;
 window.rectTiro = null;
 window.rectArquero = null;
-
-// AGREGADO: Guardar la posición elegida por el jugador al atajar
 window.tuColA = 2;
 window.tuRowA = 1;
+
+// AGREGADO: Referencias para los retratos de los jugadores
+window.retratoIzquierdo = null;
+window.retratoDerecho = null;

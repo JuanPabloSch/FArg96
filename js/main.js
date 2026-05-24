@@ -51,7 +51,7 @@ function create() {
             });
         }
     }
-    
+    actualizarRetratos(this);
     // Llama a la función iniciarBarra() que se encuentra guardada en js/gameLogic.js
     iniciarBarra(this, true);
 }
