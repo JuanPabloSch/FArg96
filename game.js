@@ -7,6 +7,8 @@ const game = new Phaser.Game(config);
 let ball, golesP1 = 0, golesCPU = 0, marcadorTexto, esTurnoP1 = true;
 let esperandoAtajada = false, zonaGolCPU = -1, ronda = 0;
 let rectTiro, rectArquero, barraTiempo;
+let historialP1 = []; // Guarda los resultados de P1
+let historialCPU = []; // Guarda los resultados de CPU
 
 function create() {
     this.add.rectangle(400, 150, 400, 200, 0xffffff).setStrokeStyle(4, 0x000000);
@@ -35,40 +37,48 @@ function create() {
 }
 
 function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
+    // 1. Detener la barra y asegurar coordenadas dentro del arco (0-4, 0-2)
     escena.tweens.killTweensOf(barraTiempo);
-    
-    // 1. FORZAMOS coordenadas dentro del arco (0 a 4, 0 a 2)
-    // Esto evita que la pelota se vaya a cualquier lugar si el valor es incorrecto
     colT = Math.max(0, Math.min(4, colT));
     rowT = Math.max(0, Math.min(2, rowT));
     colA = Math.max(0, Math.min(4, colA));
     rowA = Math.max(0, Math.min(2, rowA));
 
-    let xT = 200 + (colT * 80) + 40, yT = 50 + (rowT * 66.6) + 33;
-    let xA = 200 + (colA * 80) + 40, yA = 50 + (rowA * 66.6) + 33;
+    let xT = 200 + (colT * 80) + 40;
+    let yT = 50 + (rowT * 66.6) + 33;
+    let xA = 200 + (colA * 80) + 40;
+    let yA = 50 + (rowA * 66.6) + 33;
     
-    // 2. Lógica clara: es gol si las columnas y filas NO coinciden
     let esAtajado = (colT === colA && rowT === rowA);
     
+    // 2. Dibujar marcas de tiro y arquero
     if(rectTiro) rectTiro.destroy(); 
     if(rectArquero) rectArquero.destroy();
     rectTiro = escena.add.rectangle(xT, yT, 80, 66.6).setStrokeStyle(4, 0x3366ff);
     rectArquero = escena.add.rectangle(xA, yA, 80, 66.6).setStrokeStyle(4, esJugador ? 0xff6666 : 0x66ff66);
 
+    // 3. Mover pelota
     escena.tweens.add({
         targets: ball, x: xT, y: yT, duration: 500,
         onComplete: () => {
-            // 3. Validación estricta: si no está atajado, es gol, pero solo si es posición válida
+            // Actualizar marcador e historial
             if (!esAtajado) {
                 esJugador ? golesP1++ : golesCPU++;
+                esJugador ? historialP1.push("GOL") : historialCPU.push("GOL");
+            } else {
+                esJugador ? historialP1.push("ATA") : historialCPU.push("ATA");
             }
             
             marcadorTexto.setText(`P1: ${golesP1} - CPU: ${golesCPU}`);
-            ball.setPosition(400, 500); // Reset pelota al centro
+            ball.setPosition(400, 500);
             
+            // Dibujar el HUD de círculos
+            dibujarHUD(escena);
+
             if(rectTiro) rectTiro.destroy(); 
             if(rectArquero) rectArquero.destroy();
 
+            // Lógica de turnos
             if (esJugador) {
                 esperandoAtajada = true; esTurnoP1 = false;
                 iniciarBarra(escena, false);
@@ -85,6 +95,19 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
     });
 }
 
+function dibujarHUD(escena) {
+    // Limpiar círculos anteriores no es necesario si los dibujas en una capa fija
+    // pero aquí dibujamos según el tamaño del historial
+    for (let i = 0; i < historialP1.length; i++) {
+        let color = (historialP1[i] === "GOL") ? 0x00ff00 : 0xff0000;
+        escena.add.circle(150 + (i * 30), 100, 10, color).setStrokeStyle(2, 0xffffff);
+    }
+    for (let i = 0; i < historialCPU.length; i++) {
+        let color = (historialCPU[i] === "GOL") ? 0x00ff00 : 0xff0000;
+        escena.add.circle(550 + (i * 30), 100, 10, color).setStrokeStyle(2, 0xffffff);
+    }
+}
+
 function iniciarBarra(escena, esJugador) {
     barraTiempo.scaleX = 1;
     escena.tweens.killTweensOf(barraTiempo);
@@ -95,4 +118,38 @@ function iniciarBarra(escena, esJugador) {
             ejecutarDisparo(escena, zonaGolCPU % 5, Math.floor(zonaGolCPU / 5), 2, 1, false);
         }
     }});
+
+function dibujarHUD(escena) {
+    // 1. ELIMINAR CÍRCULOS ANTERIORES
+    // Buscamos todos los objetos que tengan un 'name' específico para borrarlos
+    let viejos = escena.children.getAll().filter(obj => obj.name === 'hudCirculo');
+    viejos.forEach(obj => obj.destroy());
+
+    // 2. DIBUJAR P1 (abajo a la izquierda)
+    for (let i = 0; i < historialP1.length; i++) {
+        let color = (historialP1[i] === "GOL") ? 0x00ff00 : 0xff0000;
+        let c = escena.add.circle(50 + (i * 30), 550, 12, color).setStrokeStyle(2, 0xffffff);
+        c.name = 'hudCirculo'; // Le damos un nombre para identificarlo luego
+    }
+    
+    // 3. DIBUJAR CPU (abajo a la derecha)
+    for (let i = 0; i < historialCPU.length; i++) {
+        let color = (historialCPU[i] === "GOL") ? 0x00ff00 : 0xff0000;
+        let c = escena.add.circle(600 + (i * 30), 550, 12, color).setStrokeStyle(2, 0xffffff);
+        c.name = 'hudCirculo';
+    }
+}
+
+    function actualizarHUD(escena) {
+    // Limpiamos etiquetas previas si es necesario, aunque aquí dibujaremos sobre el canvas
+    // Dibujamos el historial de P1 (izquierda) y CPU (derecha)
+    for (let i = 0; i < historialP1.length; i++) {
+        let color = historialP1[i] === "GOL" ? 0x00ff00 : 0xff0000;
+        escena.add.circle(100 + (i * 30), 100, 10, color).setStrokeStyle(2, 0xffffff);
+    }
+    for (let i = 0; i < historialCPU.length; i++) {
+        let color = historialCPU[i] === "GOL" ? 0x00ff00 : 0xff0000;
+        escena.add.circle(600 + (i * 30), 100, 10, color).setStrokeStyle(2, 0xffffff);
+    }
+}
 }
