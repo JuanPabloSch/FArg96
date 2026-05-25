@@ -19,8 +19,20 @@ const game = new Phaser.Game(config);
 // AGREGADO: Función para cargar la imagen de fondo antes de que empiece el juego
 function preload() {
     this.load.image('fondoCancha', 'bg/penales.png');
-}
 
+this.load.image('El Negrouu', 'players/negrouu.png');
+    this.load.image('Sebu', 'players/sebu.png');
+    this.load.image('Chino', 'players/chino.png');
+    this.load.image('Juano', 'players/juano.png');
+    this.load.image('Nahui', 'players/nahui.png');
+
+    // Equipo Ranchos FC (BRA)
+    this.load.image('Rolo', 'players/rolo.png');
+    this.load.image('El Gibe', 'players/gibe.png');
+    this.load.image('Santos', 'players/santos.png');
+    this.load.image('El Oscar', 'players/oscar.png');
+    this.load.image('Caralucas', 'players/caralucas.png');
+}
 function create() {
     // 1. DIBUJAR EL FONDO PRIMERO (Para que todo lo demás se dibuje arriba)
     // El fondo se posiciona en el centro de la pantalla (400, 300)

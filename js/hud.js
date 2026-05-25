@@ -22,44 +22,52 @@ function actualizarRetratos(escena) {
     if (window.retratoIzquierdo) { window.retratoIzquierdo.destroy(); window.retratoIzquierdo = null; }
     if (window.retratoDerecho) { window.retratoDerecho.destroy(); window.retratoDerecho = null; }
 
-    // Obtenemos los datos de las plantillas actuales
     let datosP1 = window.baseDeDatosEquipos[window.equipoSeleccionadoP1];
     let datosCPU = window.baseDeDatosEquipos[window.equipoSeleccionadoCPU];
 
-    // Índice del jugador actual (0 al 4)
-    let idxJugador = window.ronda % 5;
+    // FIX: Ahora modificado para dividir entre 4 pateadores (% 4)
+    let idxJugador = window.ronda % 4;
 
-    window.retratoIzquierdo = escena.add.container(75, 420);
-    window.retratoDerecho = escena.add.container(725, 420);
+    window.retratoIzquierdo = escena.add.container(75, 410);
+    window.retratoDerecho = escena.add.container(725, 410);
 
     if (window.esTurnoP1 && !window.esperandoAtajada) {
         // TURNO: P1 Pateador vs CPU Arquero
         let nombrePateador = datosP1.pateadores[idxJugador];
         let nombreArquero = datosCPU.arquero;
 
-        // Izquierda: Tu Pateador (Usa el color de su ropa)
-        let bgIzq = escena.add.rectangle(0, 0, 120, 130, datosP1.colorRopa).setStrokeStyle(2, 0xffffff);
-        let txtIzq = escena.add.text(0, 0, `${datosP1.nombre}\n\n${nombrePateador}\n(Pateador)`, { fontSize: '12px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
-        window.retratoIzquierdo.add([bgIzq, txtIzq]);
+        // --- IZQUIERDA: P1 PATEANDO ---
+        let marcoIzq = escena.add.rectangle(0, 0, 100, 110, datosP1.colorRopa).setStrokeStyle(3, 0xffffff);
+        let imgIzq = escena.add.image(0, 0, nombrePateador).setDisplaySize(94, 104);
+        // TEXTO ABAJO: Cartelera oscura debajo de la card
+        let cartelIzq = escena.add.rectangle(0, 75, 110, 34, 0x111111, 0.8).setStrokeStyle(1, 0xffffff);
+        let txtIzq = escena.add.text(0, 75, `${nombrePateador}\n(PATEA)`, { fontSize: '11px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
+        window.retratoIzquierdo.add([marcoIzq, imgIzq, cartelIzq, txtIzq]);
 
-        // Derecha: Arquero CPU
-        let bgDer = escena.add.rectangle(0, 0, 120, 130, datosCPU.colorRopa).setStrokeStyle(2, 0xffffff);
-        let txtDer = escena.add.text(0, 0, `${datosCPU.nombre}\n\n${nombreArquero}\n(Arquero)`, { fontSize: '12px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
-        window.retratoDerecho.add([bgDer, txtDer]);
+        // --- DERECHA: CPU ATAJANDO ---
+        let marcoDer = escena.add.rectangle(0, 0, 100, 110, datosCPU.colorRopa).setStrokeStyle(3, 0xffffff);
+        let imgDer = escena.add.image(0, 0, nombreArquero).setDisplaySize(94, 104);
+        let cartelDer = escena.add.rectangle(0, 75, 110, 34, 0x111111, 0.8).setStrokeStyle(1, 0xffffff);
+        let txtDer = escena.add.text(0, 75, `${nombreArquero}\n(ARQUERO)`, { fontSize: '11px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
+        window.retratoDerecho.add([marcoDer, imgDer, cartelDer, txtDer]);
 
     } else {
         // TURNO: P1 Arquero vs CPU Pateador
         let nombreArquero = datosP1.arquero;
         let nombrePateador = datosCPU.pateadores[idxJugador];
 
-        // Izquierda: Tu Arquero
-        let bgIzq = escena.add.rectangle(0, 0, 120, 130, datosP1.colorRopa).setStrokeStyle(2, 0xffffff);
-        let txtIzq = escena.add.text(0, 0, `${datosP1.nombre}\n\n${nombreArquero}\n(Arquero)`, { fontSize: '12px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
-        window.retratoIzquierdo.add([bgIzq, txtIzq]);
+        // --- IZQUIERDA: P1 ATAJANDO ---
+        let marcoIzq = escena.add.rectangle(0, 0, 100, 110, datosP1.colorRopa).setStrokeStyle(3, 0xffffff);
+        let imgIzq = escena.add.image(0, 0, nombreArquero).setDisplaySize(94, 104);
+        let cartelIzq = escena.add.rectangle(0, 75, 110, 34, 0x111111, 0.8).setStrokeStyle(1, 0xffffff);
+        let txtIzq = escena.add.text(0, 75, `${nombreArquero}\n(ARQUERO)`, { fontSize: '11px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
+        window.retratoIzquierdo.add([marcoIzq, imgIzq, cartelIzq, txtIzq]);
 
-        // Derecha: Pateador CPU
-        let bgDer = escena.add.rectangle(0, 0, 120, 130, datosCPU.colorRopa).setStrokeStyle(2, 0xffffff);
-        let txtDer = escena.add.text(0, 0, `${datosCPU.nombre}\n\n${nombrePateador}\n(Pateador)`, { fontSize: '12px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
-        window.retratoDerecho.add([bgDer, txtDer]);
+        // --- DERECHA: CPU PATEANDO ---
+        let marcoDer = escena.add.rectangle(0, 0, 100, 110, datosCPU.colorRopa).setStrokeStyle(3, 0xffffff);
+        let imgDer = escena.add.image(0, 0, nombrePateador).setDisplaySize(94, 104);
+        let cartelDer = escena.add.rectangle(0, 75, 110, 34, 0x111111, 0.8).setStrokeStyle(1, 0xffffff);
+        let txtDer = escena.add.text(0, 75, `${nombrePateador}\n(PATEA)`, { fontSize: '11px', fill: '#ffffff', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
+        window.retratoDerecho.add([marcoDer, imgDer, cartelDer, txtDer]);
     }
 }

@@ -16,25 +16,21 @@ window.tuRowA = 1;
 window.retratoIzquierdo = null;
 window.retratoDerecho = null;
 
-// --- NUEVA SECCIÓN: PLANTILLAS Y SELECCIÓN DE EQUIPOS ---
-
-// Base de datos de los equipos (Podés agregar más países siguiendo esta estructura)
+// BASE DE DATOS DE EQUIPOS
 window.baseDeDatosEquipos = {
     "ARG": {
-        nombre: "Argentina",
-        colorRopa: 0x2980b9, // Celeste/Azul
-        arquero: "G. Pumpido",
-        pateadores: ["D. Maradona", "G. Batistuta", "L. Messi", "H. Crespo", "J. Riquelme"]
+        nombre: "Indio Malo",
+        colorRopa: 0x2980b9, 
+        arquero: "El Negrouu",
+        pateadores: ["Sebu", "Chino", "Juano", "Nahui"]
     },
     "BRA": {
-        nombre: "Brasil",
-        colorRopa: 0xf1c40f, // Amarillo
-        arquero: "Taffarel",
-        pateadores: ["Pelé", "Ronaldo", "Ronaldinho", "Romario", "Rivaldo"]
+        nombre: "Ranchos FC",
+        colorRopa: 0xf1c40f, 
+        arquero: "Rolo",
+        pateadores: ["El Gibe", "Santos", "El Oscar", "Caralucas"]
     }
 };
 
-// Variables que definirán qué equipo se usa en el partido.
-// Por ahora los dejamos fijos, luego tu menú de selección cambiará estos strings.
 window.equipoSeleccionadoP1 = "ARG";
 window.equipoSeleccionadoCPU = "BRA";
