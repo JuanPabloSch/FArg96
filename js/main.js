@@ -72,7 +72,7 @@ function create() {
 
     this.add.rectangle(400, 550, 200, 20, 0x555555);
     window.barraTiempo = this.add.rectangle(300, 550, 200, 20, 0x00ff00).setOrigin(0, 0.5);
-    window.ball = this.add.image(400, 540, 'pelotaNueva').setScale(0.5); 
+    window.ball = this.add.image(400, 380, 'pelotaNueva').setScale(0.5); 
 
     // Crear las 15 zonas interactuables
     for (let col = 0; col < 5; col++) {

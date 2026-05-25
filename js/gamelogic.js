@@ -76,11 +76,11 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
             window.marcadorTexto.setText(`${nomP1} ${window.golesP1} - ${window.golesCPU} ${nomCPU}`);
             
             escena.time.delayedCall(1000, () => {
-                window.ball.setPosition(400, 540);
+                // FIX: El punto de penal ahora vuelve exactamente a Y=500
+                window.ball.setPosition(400, 380);
                 
-                // Al volver al punto de penal, recupera su escala original y se endereza
                 window.ball.setScale(0.5); 
-                window.ball.setAngle(0); // AGREGADO: Reseteamos el ángulo para el próximo tiro
+                window.ball.setAngle(0); 
                 
                 dibujarHUD(escena);
 
