@@ -1,5 +1,5 @@
 function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
-    window.barraTiempo.scaleX = 1; 
+    // FIX: Volamos la línea de scaleX para que la barra se mueva libremente
     escena.tweens.killTweensOf(window.barraTiempo);
     
     colT = Math.max(0, Math.min(4, colT));
@@ -42,15 +42,25 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
 
     let esAtajado = (colT === colA && rowT === rowA && tipoResultado === "NORMAL");
     
-    if(window.rectTiro) window.rectTiro.destroy(); 
+        if(window.rectTiro) window.rectTiro.destroy(); 
     if(window.rectArquero) window.rectArquero.destroy();
     window.rectTiro = escena.add.rectangle(cfg.x + (colT * cfg.anchoCelda) + (cfg.anchoCelda / 2), cfg.y + (rowT * cfg.altoCelda) + (cfg.altoCelda / 2), cfg.anchoCelda, cfg.altoCelda).setStrokeStyle(4, 0x3366ff);
     window.rectArquero = escena.add.rectangle(xA, yA, cfg.anchoCelda, cfg.altoCelda).setStrokeStyle(4, esJugador ? 0xff6666 : 0x66ff66);
 
-    window.ball.setScale(1);
+    // FIX: Escala inicial corregida a 0.8
+        // Forzamos la escala a 0.5 antes de patear y reseteamos el ángulo a 0 por las dudas
+    window.ball.setScale(0.5);
+    window.ball.setAngle(0);
 
+    // Animación: viaja, se achica en 3D y GIRA en el aire
     escena.tweens.add({
-        targets: window.ball, x: xT, y: yT, scaleX: 0.5, scaleY: 0.5, duration: 500,
+        targets: window.ball, 
+        x: xT, 
+        y: yT, 
+        scaleX: 0.25, // Como usás base 0.5, se reduce a la mitad al llegar a la red
+        scaleY: 0.25, 
+        angle: 360,   // AGREGADO: Pega una vuelta completa (efecto de rosca/giro)
+        duration: 500,
         onComplete: () => {
             if (tipoResultado === "NORMAL" && !esAtajado) {
                 esJugador ? window.golesP1++ : window.golesCPU++;
@@ -61,14 +71,17 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
                 esJugador ? window.historialP1.push(tipoResultado) : window.historialCPU.push(tipoResultado);
             }
             
-            // MODIFICADO: Mantiene los nombres reales actualizados en base a los goles actuales
             let nomP1 = window.baseDeDatosEquipos[window.equipoSeleccionadoP1].nombre;
             let nomCPU = window.baseDeDatosEquipos[window.equipoSeleccionadoCPU].nombre;
             window.marcadorTexto.setText(`${nomP1} ${window.golesP1} - ${window.golesCPU} ${nomCPU}`);
             
             escena.time.delayedCall(1000, () => {
-                window.ball.setPosition(400, 520);
-                window.ball.setScale(1); 
+                window.ball.setPosition(400, 540);
+                
+                // Al volver al punto de penal, recupera su escala original y se endereza
+                window.ball.setScale(0.5); 
+                window.ball.setAngle(0); // AGREGADO: Reseteamos el ángulo para el próximo tiro
+                
                 dibujarHUD(escena);
 
                 if (esJugador) {
@@ -90,7 +103,6 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
         }
     });
 }
-
 
 function iniciarBarra(escena, esJugador) {
     window.barraTiempo.scaleX = 1;
