@@ -1,3 +1,83 @@
+const config = {
+    type: Phaser.AUTO, 
+    width: 800, 
+    height: 600, 
+    backgroundColor: '#2d862d',
+    contextOptions: {
+        willReadFrequently: true
+    },
+    scene: { 
+        preload: preload,
+        create: create 
+    }
+};
+
+const game = new Phaser.Game(config);
+
+function preload() {
+    this.load.image('fondoCancha', 'bg/penales.png');
+}
+
+function create() {
+    // 1. Dibujar el fondo estirado
+    let fondo = this.add.image(400, 300, 'fondoCancha');
+    fondo.setDisplaySize(800, 600);
+
+    // 2. MEDIDAS FINALES: Ajuste de 5px hacia arriba
+    const arcoX = 200;       // Centrado perfecto (va de 200 a 600)
+    const arcoY = 95;        // SUBIDO: El travesaño sube a Y=95 para calzar el madero superior
+    const arcoAncho = 400;   // El ancho que calzó perfecto
+    const arcoAlto = 135;    // COMPENSADO: Sumamos 5px de alto para mantener la base en el pasto
+
+    const celdaAncho = arcoAncho / 5; // 80px cada columna
+    const celdaAlto = arcoAlto / 3;   // 45px cada fila exacta
+
+    // Guardamos las medidas en window para usarlas en ejecutarDisparo
+    window.arcoConfig = {
+        x: arcoX,
+        y: arcoY,
+        anchoCelda: celdaAncho,
+        altoCelda: celdaAlto
+    };
+
+
+
+    window.marcadorTexto = this.add.text(400, 30, 'P1: 0 - CPU: 0', { fontSize: '32px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+    this.add.rectangle(400, 550, 200, 20, 0x555555);
+    window.barraTiempo = this.add.rectangle(300, 550, 200, 20, 0x00ff00).setOrigin(0, 0.5);
+    
+    // Pelota blanca arrancando más abajo cerca de tu HUD (Y=520)
+    window.ball = this.add.circle(400, 520, 15, 0xffffff).setStrokeStyle(2, 0x000000);
+
+    // Crear las 15 zonas interactivas rectangulares
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 3; row++) {
+            let x = arcoX + (col * celdaAncho) + (celdaAncho / 2);
+            let y = arcoY + (row * celdaAlto) + (celdaAlto / 2);
+            
+            // Opacidad casi invisible para que aprecies el pixelart pero detecte el clic
+            let zona = this.add.rectangle(x, y, celdaAncho, celdaAlto, 0xff0000, 0.01).setStrokeStyle(1, 0xffffff, 0.15).setInteractive();
+            
+            zona.on('pointerdown', () => {
+                if (window.esTurnoP1 && !window.esperandoAtajada) {
+                    let arqueroCol = Math.floor(Math.random() * 5);
+                    let arqueroRow = Math.floor(Math.random() * 3);
+                    ejecutarDisparo(this, col, row, arqueroCol, arqueroRow, true);
+                } else if (window.esperandoAtajada) {
+                    window.tuColA = col; 
+                    window.tuRowA = row;
+                    let c = window.zonaGolCPU % 5;
+                    let r = Math.floor(window.zonaGolCPU / 5);
+                    ejecutarDisparo(this, c, r, window.tuColA, window.tuRowA, false);
+                }
+            });
+        }
+    }
+    
+    actualizarRetratos(this);
+    iniciarBarra(this, true);
+}
+
 function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
     escena.tweens.killTweensOf(window.barraTiempo);
     
@@ -6,10 +86,13 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
     colA = Math.max(0, Math.min(4, colA));
     rowA = Math.max(0, Math.min(2, rowA));
 
-    let xT = 200 + (colT * 80) + 40;
-    let yT = 50 + (rowT * 66.6) + 33;
-    let xA = 200 + (colA * 80) + 40;
-    let yA = 50 + (rowA * 66.6) + 33;
+    const cfg = window.arcoConfig;
+
+    // Coordenadas calculadas en base al arco estirado
+    let xT = cfg.x + (colT * cfg.anchoCelda) + (cfg.anchoCelda / 2);
+    let yT = cfg.y + (rowT * cfg.altoCelda) + (cfg.altoCelda / 2);
+    let xA = cfg.x + (colA * cfg.anchoCelda) + (cfg.anchoCelda / 2);
+    let yA = cfg.y + (rowA * cfg.altoCelda) + (cfg.altoCelda / 2);
     
     let rng = Math.random();
     let tipoResultado = "NORMAL"; 
@@ -17,26 +100,47 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
     if (rng < 0.05) {
         tipoResultado = "PALO";
         let elegirPalo = Math.random();
-        if (elegirPalo < 0.4) { xT = 200; } 
-        else if (elegirPalo < 0.8) { xT = 600; } 
-        else { xT = Math.floor(Math.random() * (600 - 200 + 1)) + 200; yT = 50; }
+        if (elegirPalo < 0.4) { 
+            xT = cfg.x; // Palo izquierdo real
+        } else if (elegirPalo < 0.8) { 
+            xT = cfg.x + (cfg.anchoCelda * 5); // Palo derecho real
+        } else { 
+            xT = Math.floor(Math.random() * ((cfg.x + cfg.anchoCelda * 5) - cfg.x + 1)) + cfg.x; 
+            yT = cfg.y; // Travesaño real
+        }
     } else if (rng < 0.15) {
         tipoResultado = "AFUERA";
         let elegirAfuera = Math.random();
-        if (elegirAfuera < 0.33) { xT = Math.floor(Math.random() * (170 - 100 + 1)) + 100; } 
-        else if (elegirAfuera < 0.66) { xT = Math.floor(Math.random() * (700 - 630 + 1)) + 630; } 
-        else { yT = Math.floor(Math.random() * (35 - 10 + 1)) + 10; }
+        if (elegirAfuera < 0.33) { 
+            xT = Math.floor(Math.random() * ((cfg.x - 10) - (cfg.x - 60) + 1)) + (cfg.x - 60); 
+        } else if (elegirAfuera < 0.66) { 
+            let limiteDer = cfg.x + (cfg.anchoCelda * 5);
+            xT = Math.floor(Math.random() * ((limiteDer + 60) - (limiteDer + 10) + 1)) + (limiteDer + 10); 
+        } else { 
+            yT = Math.floor(Math.random() * ((cfg.y - 10) - (cfg.y - 50) + 1)) + (cfg.y - 50); 
+        }
     }
 
     let esAtajado = (colT === colA && rowT === rowA && tipoResultado === "NORMAL");
     
     if(window.rectTiro) window.rectTiro.destroy(); 
     if(window.rectArquero) window.rectArquero.destroy();
-    window.rectTiro = escena.add.rectangle(200 + (colT * 80) + 40, 50 + (rowT * 66.6) + 33, 80, 66.6).setStrokeStyle(4, 0x3366ff);
-    window.rectArquero = escena.add.rectangle(xA, yA, 80, 66.6).setStrokeStyle(4, esJugador ? 0xff6666 : 0x66ff66);
+    
+    // Dibujamos las marcas rectangulares estables sobre las dimensiones reales del arco
+    window.rectTiro = escena.add.rectangle(cfg.x + (colT * cfg.anchoCelda) + (cfg.anchoCelda / 2), cfg.y + (rowT * cfg.altoCelda) + (cfg.altoCelda / 2), cfg.anchoCelda, cfg.altoCelda).setStrokeStyle(4, 0x3366ff);
+    window.rectArquero = escena.add.rectangle(xA, yA, cfg.anchoCelda, cfg.altoCelda).setStrokeStyle(4, esJugador ? 0xff6666 : 0x66ff66);
 
+    // Resetear escala de la pelota antes del tiro por si acaso
+    window.ball.setScale(1);
+
+    // Animación del tiro con EFECTO 3D (Se desplaza y se achica a la mitad)
     escena.tweens.add({
-        targets: window.ball, x: xT, y: yT, duration: 500,
+        targets: window.ball,
+        x: xT,
+        y: yT,
+        scaleX: 0.5, // AGREGADO: Se achica simulando distancia
+        scaleY: 0.5,
+        duration: 500,
         onComplete: () => {
             if (tipoResultado === "NORMAL" && !esAtajado) {
                 esJugador ? window.golesP1++ : window.golesCPU++;
@@ -50,13 +154,14 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
             window.marcadorTexto.setText(`P1: ${window.golesP1} - CPU: ${window.golesCPU}`);
             
             escena.time.delayedCall(1000, () => {
-                window.ball.setPosition(400, 500);
-                dibujarHUD(escena); // Dibuja el círculo inmediatamente al terminar el penal
+                window.ball.setPosition(400, 520);
+                window.ball.setScale(1); // Reset de tamaño para el próximo tiro
+                dibujarHUD(escena);
 
                 if (esJugador) {
                     window.esperandoAtajada = true; 
                     window.esTurnoP1 = false;
-                    actualizarRetratos(escena); // CAMBIO: Actualiza retratos para la CPU pateando
+                    actualizarRetratos(escena); 
                     iniciarBarra(escena, false);
                 } else {
                     window.esperandoAtajada = false; 
@@ -65,13 +170,12 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
                     window.tuColA = 2; window.tuRowA = 1;
                     
                     if (verificarFinPartido()) {
-                        // Agregamos un pequeñísimo delay para asegurar que el navegador renderice el último círculo antes del alert
                         escena.time.delayedCall(50, () => {
                             alert(`¡Tanda Finalizada!\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`);
                             location.reload();
                         });
                     } else {
-                        actualizarRetratos(escena); // CAMBIO: Actualiza retratos para tu próximo tiro
+                        actualizarRetratos(escena); 
                         iniciarBarra(escena, true);
                     }
                 }
