@@ -43,7 +43,63 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
         }
     }
 
-    let esAtajado = (colT === colA && rowT === rowA && tipoResultado === "NORMAL");
+    // --- NUEVO SISTEMA DE ZONAS DE ALCANCE DEL ARQUERO (7 ZONAS DEFINITIVAS) ---
+    let celdaTiro = (rowT * 5) + colT;
+    let esAtajado = false;
+
+    // 1. ZONA CENTRO (Celdas 2, 7, 12)
+    if (colA === 2) {
+        if (celdaTiro === 2 || celdaTiro === 7 || celdaTiro === 12) {
+            esAtajado = true;
+        }
+    }
+    // 2. ZONA ARRIBA IZQUIERDA (Celdas 0, 1)
+    else if (rowA === 0 && colA < 2) {
+        if (celdaTiro === 0 || celdaTiro === 1) {
+            esAtajado = true;
+        }
+    }
+    // 3. ZONA MEDIO IZQUIERDA (Celdas 5, 6)
+    else if (rowA === 1 && colA < 2) {
+        if (celdaTiro === 5 || celdaTiro === 6) {
+            esAtajado = true;
+        }
+    }
+    // 4. ZONA BAJO IZQUIERDA (Celdas 10, 11)
+    else if (rowA === 2 && colA < 2) {
+        if (celdaTiro === 10 || celdaTiro === 11) {
+            esAtajado = true;
+        }
+    }
+    // 5. ZONA ARRIBA DERECHA (Celdas 3, 4)
+    else if (rowA === 0 && colA > 2) {
+        if (celdaTiro === 3 || celdaTiro === 4) {
+            esAtajado = true;
+        }
+    }
+    // 6. ZONA MEDIO DERECHA (Celdas 8, 9)
+    else if (rowA === 1 && colA > 2) {
+        if (celdaTiro === 8 || celdaTiro === 9) {
+            esAtajado = true;
+        }
+    }
+    // 7. ZONA BAJO DERECHA (Celdas 13, 14)
+    else if (rowA === 2 && colA > 2) {
+        if (celdaTiro === 13 || celdaTiro === 14) {
+            esAtajado = true;
+        }
+    }
+
+    // Filtro de seguridad por si coincide la celda exacta exacta
+    if (colT === colA && rowT === rowA) {
+        esAtajado = true;
+    }
+
+    // Si la pelota fue al palo o afuera, se anula la atajada
+    if (tipoResultado !== "NORMAL") {
+        esAtajado = false;
+    }
+    // --------------------------------------------------------------------------
     
     if(window.rectTiro) window.rectTiro.destroy(); 
     if(window.rectArquero) window.rectArquero.destroy();
@@ -106,6 +162,7 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
         }
     });
 }
+
 
 function iniciarBarra(escena, esJugador) {
     window.barraTiempo.scaleX = 1;
