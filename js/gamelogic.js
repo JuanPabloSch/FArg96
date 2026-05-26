@@ -69,41 +69,72 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
                         let nomCPU = window.baseDeDatosEquipos[window.equipoSeleccionadoCPU].nombre;
                         window.marcadorTexto.setText(`${nomP1} ${window.golesP1} - ${window.golesCPU} ${nomCPU}`);
                         
-                        escena.time.delayedCall(1000, () => {
-                            window.ball.setPosition(400, 380); // Tu punto penal base
-                            window.ball.setScale(0.35); 
-                            window.ball.setAngle(0); 
-                            
-                            // Borramos el sprite visible justo cuando la pelota vuelve al punto penal
-                            if (window.pateadorActual) {
-                                window.pateadorActual.destroy();
-                                window.pateadorActual = null;
+                                            // === 🔄 REEMPLAZÁ TODO TU DELAYEDCALL POR ESTE EXACTO Y COMPLETAMENTE CERRADO ===
+                    escena.time.delayedCall(1000, () => {
+                        window.ball.setPosition(400, 380); // Tu punto penal base (380)
+                        window.ball.setScale(0.35);        // Tu escala corregida
+                        window.ball.setAngle(0); 
+                        
+                        // Borramos el sprite visible justo cuando la pelota vuelve al punto penal
+                        if (window.pateadorActual) {
+                            window.pateadorActual.destroy();
+                            window.pateadorActual = null;
+                        }
+
+                        dibujarHUD(escena);
+
+                        // Forzamos la escala de nuevo por si el HUD la pisa al redibujarse
+                        window.ball.setScale(0.35); 
+
+                        window.ejecutandoTiro = false;
+
+                        // --- CAMBIO DE TURNO E INVERSIÓN DE TEXTURAS CORREGIDO EN ORDEN CRUCIAL ---
+                        if (esJugador) {
+                            window.esperandoAtajada = true; 
+                            window.esTurnoP1 = false; // El estado lógico cambia primero
+
+                            if (window.arqueroSprite) {
+                                window.arqueroSprite.setTexture(`${window.equipoSeleccionadoP1}_idle`);
+                                window.arqueroSprite.x = 400;
+                                window.arqueroSprite.y = 230;
+                                window.arqueroSprite.scaleX = 1;
+                                window.arqueroSprite.setFrame(0); // Guardia firme
                             }
 
-                            dibujarHUD(escena);
-                            window.ejecutandoTiro = false;
+                            actualizarRetratos(escena); 
+                            iniciarBarra(escena, false);
+                        } else {
+                            window.esperandoAtajada = false; 
+                            window.esTurnoP1 = true; // El estado lógico cambia primero
+                            window.ronda++;
+                            window.tuColA = 2; 
+                            window.tuRowA = 1;
 
-                            if (esJugador) {
-                                window.esperandoAtajada = true; window.esTurnoP1 = false;
-                                actualizarRetratos(escena); iniciarBarra(escena, false);
+                            if (verificarFinPartido()) {
+                                escena.time.delayedCall(50, () => {
+                                    alert(`¡Tanda Finalizada!\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`);
+                                    location.reload();
+                                });
                             } else {
-                                window.esperandoAtajada = false; window.esTurnoP1 = true; window.ronda++;
-                                window.tuColA = 2; window.tuRowA = 1;
-                                if (verificarFinPartido()) {
-                                    escena.time.delayedCall(50, () => {
-                                        alert(`¡Tanda Finalizada!\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`);
-                                        location.reload();
-                                    });
-                                } else {
-                                    actualizarRetratos(escena); iniciarBarra(escena, true);
+                                if (window.arqueroSprite) {
+                                    window.arqueroSprite.setTexture(`${window.equipoSeleccionadoCPU}_idle`);
+                                    window.arqueroSprite.x = 400;
+                                    window.arqueroSprite.y = 230;
+                                    window.arqueroSprite.scaleX = 1;
+                                    window.arqueroSprite.setFrame(0); // Guardia firme
                                 }
+
+                                actualizarRetratos(escena); 
+                                iniciarBarra(escena, true);
                             }
-                        });
-                    }
-                });
-            }
-        });
-    }
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
+
     // ===============================================================
  // ¡MÁS ARRIBA QUE LA PELOTA!: La pelota tiene Depth 3, el jugador la tapa al correr
 
