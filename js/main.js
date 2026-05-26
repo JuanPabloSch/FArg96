@@ -45,6 +45,8 @@ function preload() {
     this.load.spritesheet('ARG_pateador', 'players/indio_shoot.png', { frameWidth: 150, frameHeight: 122 });
     this.load.spritesheet('BRA_pateador', 'players/rancho_shoot.png', { frameWidth: 150, frameHeight: 122 });
 
+    this.load.image('creditos', 'bg/creditos.png'); // Poné acá la ruta real de tu archivo
+
 }
 
 function create() {
