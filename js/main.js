@@ -56,6 +56,10 @@ function preload() {
 
     // 5. Carga de pantalla de créditos
     this.load.image('creditos', 'bg/creditos.png');
+
+        // --- 🔊 CARGA DE MÚSICA DE MENÚ ---
+    this.load.audio('musicaMenu', 'assets/sfx/menu.mp3');
+
 }
 
 function create() {
@@ -150,6 +154,11 @@ function create() {
     // =======================================================
     
     function mostrarPantallaSeleccion() {
+
+        // --- 🎵 ARRANCAR MÚSICA CON LOOP REPETITIVO ---
+        if (!escena.sound.get('musicaMenu')) {
+            escena.sound.play('musicaMenu', { loop: true, volume: 0.5 });
+        }
         imagenSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100);
         
         let zonaIndioMalo = escena.add.rectangle(270, 540, 380, 480, 0xffffff, 0.0).setInteractive().setDepth(101);
@@ -157,6 +166,7 @@ function create() {
 
         // Si elige INDIO MALO (Ataja Ranchos FC -> BRA)
         zonaIndioMalo.on('pointerdown', () => {
+            escena.sound.stopAll();
             window.equipoSeleccionadoP1 = "ARG";
             window.equipoSeleccionadoCPU = "BRA";
             
@@ -178,6 +188,7 @@ function create() {
 
         // Si elige RANCHOS FC (Ataja Indio Malo -> ARG)
         zonaRanchosFC.on('pointerdown', () => {
+            escena.sound.stopAll();
             window.equipoSeleccionadoP1 = "BRA";
             window.equipoSeleccionadoCPU = "ARG";
             
