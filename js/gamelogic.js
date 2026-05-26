@@ -169,8 +169,10 @@ if (window.arqueroSprite) {
                         }
                         
                         else if (esAtajado) {
+                            escena.sound.play('nogol');
                             esJugador ? window.historialP1.push("ATA") : window.historialCPU.push("ATA");
                         } else {
+                            escena.sound.play('nogol');
                             esJugador ? window.historialP1.push(tipoResultado) : window.historialCPU.push(tipoResultado);
                         }
 
