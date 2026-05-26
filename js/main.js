@@ -147,18 +147,51 @@ function create() {
     // 📺 GESTIÓN VISUAL DE CAPAS SOBRE EL JUEGO BASE
     // =======================================================
     
-    // Función intermedia para lanzar la Selección de Equipos
     function mostrarPantallaSeleccion() {
-        imagenSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100).setInteractive();
+        // 1. Dibujamos la foto de fondo de selección que me pasaste
+        imagenSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100);
         
-        imagenSeleccion.on('pointerdown', () => {
-            imagenSeleccion.destroy(); // Borramos la foto de selección
-            window.pantallaActual = "PARTIDO"; // Habilitamos interacciones de juego
+        // 2. Zona interactiva invisible arriba de INDIO MALO (Izquierda)
+        let zonaIndioMalo = escena.add.rectangle(270, 540, 380, 480, 0xffffff, 0.0)
+            .setInteractive().setDepth(101);
             
-            // Recién acá adentro iniciamos la barra de tiempo para arrancar el primer penal
+        // 3. Zona interactiva invisible arriba de RANCHOS FC (Derecha)
+        let zonaRanchosFC = escena.add.rectangle(720, 540, 380, 480, 0xffffff, 0.0)
+            .setInteractive().setDepth(101);
+
+        // --- LÓGICA DE SELECCIÓN AL HACER CLIC ---
+        
+        // Si clickea a Indio Malo (Izquierda): P1 es ARG, CPU es BRA
+        zonaIndioMalo.on('pointerdown', () => {
+            window.equipoSeleccionadoP1 = "ARG";
+            window.equipoSeleccionadoCPU = "BRA";
+            
+            // Destruimos la pantalla de selección y las zonas para liberar memoria
+            zonaIndioMalo.destroy();
+            zonaRanchosFC.destroy();
+            imagenSeleccion.destroy();
+            
+            // Arranca el partido
+            window.pantallaActual = "PARTIDO";
+            iniciarBarra(escena, true);
+        });
+
+        // Si clickea a Ranchos FC (Derecha): P1 es BRA, CPU es ARG
+        zonaRanchosFC.on('pointerdown', () => {
+            window.equipoSeleccionadoP1 = "BRA";
+            window.equipoSeleccionadoCPU = "ARG";
+            
+            // Destruimos la pantalla de selección y las zonas
+            zonaIndioMalo.destroy();
+            zonaRanchosFC.destroy();
+            imagenSeleccion.destroy();
+            
+            // Arranca el partido
+            window.pantallaActual = "PARTIDO";
             iniciarBarra(escena, true);
         });
     }
+
 
     // Dibujamos la pantalla de inicio con Depth=101 arriba de absolutamente todo
     imagenInicio = this.add.image(400, 300, 'fotoInicio').setDisplaySize(800, 600).setDepth(101).setInteractive();
