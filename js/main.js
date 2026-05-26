@@ -19,9 +19,14 @@ function preload() {
     this.load.image('fondoCancha', 'bg/penales.png');
     this.load.image('pelotaNueva', 'assets/pelota.png'); 
 
-    // 2. NUEVA CARGA OPTIMIZADA: Las dos hojas separadas de Rolo
-    this.load.spritesheet('rolo_idle', 'players/rolo_idle.png', { frameWidth: 110, frameHeight: 140 });
-    this.load.spritesheet('rolo_vuelo', 'players/rolo_vuelo.png', { frameWidth: 190, frameHeight: 140 });
+     // 2. NUEVA CARGA RETRO GENERAL DE CUERPOS (185x138px)
+    // Hojas de Argentina (Indio Malo - El Negrouu)
+    this.load.spritesheet('ARG_idle', 'players/negrouu_idle.png', { frameWidth: 110, frameHeight: 140 });
+    this.load.spritesheet('ARG_vuelo', 'players/negrouu_vuelo.png', { frameWidth: 190, frameHeight: 140 });
+
+    // Hojas de Brasil (Ranchos FC - Rolo)
+    this.load.spritesheet('BRA_idle', 'players/rolo_idle.png', { frameWidth: 110, frameHeight: 140 });
+    this.load.spritesheet('BRA_vuelo', 'players/rolo_vuelo.png', { frameWidth: 190, frameHeight: 140 });
 
     // 3. Carga de fotos para los retratos estáticos del HUD
     this.load.image('El Negrouu', 'players/negrouu.png');
@@ -78,12 +83,14 @@ function create() {
     // Pelota en capa superior (Depth 3)
     window.ball = this.add.image(400, 500, 'pelotaNueva').setScale(0.5).setDepth(3); 
 
-    // --- ARQUERO INICIAL: Arranca firme en el centro con rolo_idle ---
-    window.arqueroSprite = this.add.sprite(400, 230, 'rolo_idle');
+        // --- ARQUERO INICIAL: Arranca el arquero de la CPU en el centro ---
+    let equipoAtajadorInicial = window.equipoSeleccionadoCPU; // Arranca atajando BRA
+    window.arqueroSprite = this.add.sprite(400, 230, `${equipoAtajadorInicial}_idle`);
     window.arqueroSprite.setOrigin(0.5, 1); 
     window.arqueroSprite.setScale(1);
     window.arqueroSprite.setFrame(0); 
-    window.arqueroSprite.setDepth(1); // Capa de fondo del arco
+    window.arqueroSprite.setDepth(1);
+
 
     // Crear las 15 zonas interactuables
     for (let col = 0; col < 5; col++) {

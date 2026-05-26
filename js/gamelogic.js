@@ -91,37 +91,43 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
 
     
         // --- CALIBRACIÓN DEFICITIVA DE POSICIÓN Y VUELOS DEL ARQUERO ---
+        // --- ASIGNAR TEXTURA DINÁMICA, COORDENADA X Y ESPEJADO SEGÚN EL ARQUERO DE TURNO ---
     if (window.arqueroSprite) {
         window.arqueroSprite.scaleX = 1; // Reseteo espejo
 
+        // Detectamos qué equipo está en el arco en este tiro actual
+        // Si es turno de P1 (patea P1), el que ataja es la CPU. Si no, ataja P1.
+        let equipoEnElArco = window.esTurnoP1 ? window.equipoSeleccionadoCPU : window.equipoSeleccionadoP1;
+
         if (colA === 2) { // --- CENTRO ---
-            window.arqueroSprite.setTexture('rolo_idle');
-            window.arqueroSprite.x = 400; // Centro perfecto
-            window.arqueroSprite.y = 230; // ¡AJUSTADO!: Bajamos 5px en el centro para que apoye bien los pies
+            window.arqueroSprite.setTexture(`${equipoEnElArco}_idle`);
+            window.arqueroSprite.x = 400; 
+            window.arqueroSprite.y = 230; // Tu coordenada de oro
             
             if (celdaTiro === 12) window.arqueroSprite.setFrame(2); // Agachado
             else window.arqueroSprite.setFrame(1); // Salto al centro
         } 
         else if (colA < 2) { // --- VOLAR A LA IZQUIERDA (NATURAL) ---
-            window.arqueroSprite.setTexture('rolo_vuelo');
-            window.arqueroSprite.y = 222; // Altura normal de la cal
-            window.arqueroSprite.x = 265; // ¡AJUSTADO!: Frena 20px antes (pasó de 245 a 265)
+            window.arqueroSprite.setTexture(`${equipoEnElArco}_vuelo`);
+            window.arqueroSprite.y = 222; // Altura normal de vuelo
+            window.arqueroSprite.x = 265; 
             
-            if (rowA === 0) window.arqueroSprite.setFrame(0); // Arriba
-            if (rowA === 1) window.arqueroSprite.setFrame(1); // Medio
-            if (rowA === 2) window.arqueroSprite.setFrame(2); // Abajo
+            if (rowA === 0) window.arqueroSprite.setFrame(0); 
+            if (rowA === 1) window.arqueroSprite.setFrame(1); 
+            if (rowA === 2) window.arqueroSprite.setFrame(2); 
         } 
         else if (colA > 2) { // --- VOLAR A LA DERECHA (ESPEJADO) ---
-            window.arqueroSprite.setTexture('rolo_vuelo');
-            window.arqueroSprite.y = 222; // Altura normal de la cal
-            window.arqueroSprite.x = 535; // ¡AJUSTADO!: Frena 20px antes (pasó de 555 a 535)
-            window.arqueroSprite.scaleX = -1; // Espejo horizontal
+            window.arqueroSprite.setTexture(`${equipoEnElArco}_vuelo`);
+            window.arqueroSprite.y = 222; 
+            window.arqueroSprite.x = 535; 
+            window.arqueroSprite.scaleX = -1; // Espejo horizontal automático
             
-            if (rowA === 0) window.arqueroSprite.setFrame(0); // Arriba
-            if (rowA === 1) window.arqueroSprite.setFrame(1); // Medio
-            if (rowA === 2) window.arqueroSprite.setFrame(2); // Abajo
+            if (rowA === 0) window.arqueroSprite.setFrame(0); 
+            if (rowA === 1) window.arqueroSprite.setFrame(1); 
+            if (rowA === 2) window.arqueroSprite.setFrame(2); 
         }
     }
+
 
 
     if(window.rectTiro) window.rectTiro.destroy(); 
@@ -149,7 +155,7 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
             let nomCPU = window.baseDeDatosEquipos[window.equipoSeleccionadoCPU].nombre;
             window.marcadorTexto.setText(`${nomP1} ${window.golesP1} - ${window.golesCPU} ${nomCPU}`);
             
-            escena.time.delayedCall(1000, () => {
+                        escena.time.delayedCall(1000, () => {
                 window.ball.setPosition(400, 500);
                 window.ball.setScale(0.5); 
                 window.ball.setAngle(0); 
@@ -157,36 +163,52 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
                 dibujarHUD(escena);
                 window.ejecutandoTiro = false;
 
-                // --- RESETEO: El arquero vuelve al centro, firme y en guardia ---
-                    // Buscá el delayedCall(1000) abajo y dejá el bloque del sprite así:
-            if (window.arqueroSprite) {
-                window.arqueroSprite.setTexture('rolo_idle');
-                window.arqueroSprite.x = 400;
-                window.arqueroSprite.y = 230; // Vuelve abajo con los pies firmes
-                window.arqueroSprite.scaleX = 1;
-                window.arqueroSprite.setFrame(0);
-            }
-
-
                 if (esJugador) {
-                    window.esperandoAtajada = true; window.esTurnoP1 = false;
-                    actualizarRetratos(escena); iniciarBarra(escena, false);
+                    window.esperandoAtajada = true; 
+                    window.esTurnoP1 = false;
+                    
+                    // Ahora le toca atajar al P1 (Argentina 'ARG')
+                    if (window.arqueroSprite) {
+                        window.arqueroSprite.setTexture(`${window.equipoSeleccionadoP1}_idle`);
+                        window.arqueroSprite.x = 400;
+                        window.arqueroSprite.y = 230;
+                        window.arqueroSprite.scaleX = 1;
+                        window.arqueroSprite.setFrame(0);
+                    }
+
+                    actualizarRetratos(escena); 
+                    iniciarBarra(escena, false);
                 } else {
-                    window.esperandoAtajada = false; window.esTurnoP1 = true; window.ronda++;
-                    window.tuColA = 2; window.tuRowA = 1;
+                    window.esperandoAtajada = false; 
+                    window.esTurnoP1 = true; 
+                    window.ronda++;
+                    window.tuColA = 2; 
+                    window.tuRowA = 1;
+
                     if (verificarFinPartido()) {
                         escena.time.delayedCall(50, () => {
                             alert(`¡Tanda Finalizada!\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`);
                             location.reload();
                         });
                     } else {
-                        actualizarRetratos(escena); iniciarBarra(escena, true);
+                        // Ahora le toca atajar a la CPU (Brasil 'BRA')
+                        if (window.arqueroSprite) {
+                            window.arqueroSprite.setTexture(`${window.equipoSeleccionadoCPU}_idle`);
+                            window.arqueroSprite.x = 400;
+                            window.arqueroSprite.y = 230;
+                            window.arqueroSprite.scaleX = 1;
+                            window.arqueroSprite.setFrame(0);
+                        }
+
+                        actualizarRetratos(escena); 
+                        iniciarBarra(escena, true);
                     }
                 }
             });
         }
     });
 }
+
 
 function iniciarBarra(escena, esJugador) {
     window.barraTiempo.scaleX = 1;
