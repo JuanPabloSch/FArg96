@@ -158,9 +158,35 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
                                 let fotoCreditos = escena.add.image(400, 300, 'creditos').setDisplaySize(800, 600).setDepth(14);
 
                                 // Al hacer un clic en cualquier lado de los créditos, reinicia
+                                                                // Al hacer un clic en cualquier lado de los créditos, reinicia
                                 escena.input.once('pointerdown', () => {
-                                    location.reload();
+                                    // 1. Limpiamos la foto de créditos de la pantalla
+                                    fotoCreditos.destroy(); 
+                                    
+                                    // 2. Reseteamos los goles globales para el nuevo partido
+                                    window.golesP1 = 0;
+                                    window.golesCPU = 0;
+                                    window.historialP1 = [];
+                                    window.historialCPU = [];
+                                    window.esTurnoP1 = true;
+                                    window.esperandoAtajada = false;
+                                    window.ronda = 1;
+                                    window.ejecutandoTiro = false;
+
+                                    // 3. Volvemos a clavar el estado en Selección
+                                    window.pantallaActual = "SELECCION";
+
+                                    // 4. Dibujamos la foto de selección directamente en el lienzo
+                                    let imgSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100).setInteractive();
+                                    
+                                    // 5. Al hacer clic en la foto, arranca la tanda otra vez
+                                    imgSeleccion.on('pointerdown', () => {
+                                        imgSeleccion.destroy();
+                                        window.pantallaActual = "PARTIDO";
+                                        iniciarBarra(escena, true); 
+                                    });
                                 });
+
                             });
                         });
                             } else {

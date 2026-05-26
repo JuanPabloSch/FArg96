@@ -14,12 +14,21 @@ const phaserConfig = {
 
 const game = new Phaser.Game(phaserConfig);
 
+// --- 🕹️ CONTROL GLOBAL DE MENÚS RETRO ---
+window.pantallaActual = "INICIO"; // Cambia a "SELECCION" y luego a "PARTIDO"
+let imagenInicio;
+let imagenSeleccion;
+
 function preload() {
+    // 0. Cargar fotos de los menús
+    this.load.image('fotoInicio', 'bg/inicio.png');
+    this.load.image('fotoSeleccion', 'bg/seleccion.png');
+
     // 1. Cargar fondo de cancha y pelota
     this.load.image('fondoCancha', 'bg/penales.png');
     this.load.image('pelotaNueva', 'assets/pelota.png'); 
 
-     // 2. NUEVA CARGA RETRO GENERAL DE CUERPOS (185x138px)
+    // 2. NUEVA CARGA RETRO GENERAL DE CUERPOS (185x138px)
     // Hojas de Argentina (Indio Malo - El Negrouu)
     this.load.spritesheet('ARG_idle', 'players/negrouu_idle.png', { frameWidth: 110, frameHeight: 140 });
     this.load.spritesheet('ARG_vuelo', 'players/negrouu_vuelo.png', { frameWidth: 190, frameHeight: 140 });
@@ -41,16 +50,18 @@ function preload() {
     this.load.image('El Oscar', 'players/oscar.png');
     this.load.image('Caralucas', 'players/caralucas.png');
 
-        // 4. PATEADORES: Hojas de disparo con tus medidas calibradas (150x122px por cuadro)
+    // 4. PATEADORES: Hojas de disparo con tus medidas calibradas (150x122px por cuadro)
     this.load.spritesheet('ARG_pateador', 'players/indio_shoot.png', { frameWidth: 150, frameHeight: 122 });
     this.load.spritesheet('BRA_pateador', 'players/rancho_shoot.png', { frameWidth: 150, frameHeight: 122 });
 
-    this.load.image('creditos', 'bg/creditos.png'); // Poné acá la ruta real de tu archivo
-
+    // 5. Carga de pantalla de créditos
+    this.load.image('creditos', 'bg/creditos.png');
 }
 
 function create() {
-    // Dibujar fondo estirado
+    let escena = this;
+
+    // Dibujar fondo estirado de la cancha
     let fondo = this.add.image(400, 300, 'fondoCancha');
     fondo.setDisplaySize(800, 600);
 
@@ -90,14 +101,13 @@ function create() {
     // Pelota en capa superior (Depth 3)
     window.ball = this.add.image(400, 380, 'pelotaNueva').setScale(0.35).setDepth(3); 
 
-        // --- ARQUERO INICIAL: Arranca el arquero de la CPU en el centro ---
-    let equipoAtajadorInicial = window.equipoSeleccionadoCPU; // Arranca atajando BRA
+    // --- ARQUERO INICIAL ---
+    let equipoAtajadorInicial = window.equipoSeleccionadoCPU; 
     window.arqueroSprite = this.add.sprite(400, 230, `${equipoAtajadorInicial}_idle`);
     window.arqueroSprite.setOrigin(0.5, 1); 
     window.arqueroSprite.setScale(1);
     window.arqueroSprite.setFrame(0); 
     window.arqueroSprite.setDepth(1);
-
 
     // Crear las 15 zonas interactuables
     for (let col = 0; col < 5; col++) {
@@ -105,13 +115,14 @@ function create() {
             let x = arcoX + (col * celdaAncho) + (celdaAncho / 2);
             let y = arcoY + (row * celdaAlto) + (celdaAlto / 2);
             
-            // Depth=2 garantiza que las zonas de clic queden arriba del cuerpo del arquero
             let zona = this.add.rectangle(x, y, celdaAncho, celdaAlto, 0xff0000, 0.01)
             .setStrokeStyle(1, 0xffffff, 0.15)
             .setInteractive()
             .setDepth(2);
             
             zona.on('pointerdown', () => {
+                // BLOQUEO DE SEGURIDAD: No permite clics si se está en las pantallas de menús
+                if (window.pantallaActual !== "PARTIDO") return;
                 if (window.ejecutandoTiro) return;
                 window.ejecutandoTiro = true;
 
@@ -131,5 +142,30 @@ function create() {
     }
     
     actualizarRetratos(this);
-    iniciarBarra(this, true);
+
+    // =======================================================
+    // 📺 GESTIÓN VISUAL DE CAPAS SOBRE EL JUEGO BASE
+    // =======================================================
+    
+    // Función intermedia para lanzar la Selección de Equipos
+    function mostrarPantallaSeleccion() {
+        imagenSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100).setInteractive();
+        
+        imagenSeleccion.on('pointerdown', () => {
+            imagenSeleccion.destroy(); // Borramos la foto de selección
+            window.pantallaActual = "PARTIDO"; // Habilitamos interacciones de juego
+            
+            // Recién acá adentro iniciamos la barra de tiempo para arrancar el primer penal
+            iniciarBarra(escena, true);
+        });
+    }
+
+    // Dibujamos la pantalla de inicio con Depth=101 arriba de absolutamente todo
+    imagenInicio = this.add.image(400, 300, 'fotoInicio').setDisplaySize(800, 600).setDepth(101).setInteractive();
+    
+    imagenInicio.on('pointerdown', () => {
+        imagenInicio.destroy(); // Borramos la foto de portada
+        window.pantallaActual = "SELECCION";
+        mostrarPantallaSeleccion();
+    });
 }
