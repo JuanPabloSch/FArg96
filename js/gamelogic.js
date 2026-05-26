@@ -30,6 +30,17 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
         else { yT = Math.floor(Math.random() * ((cfg.y - 10) - (cfg.y - 50) + 1)) + (cfg.y - 50); }
     }
 
+        // --- ⚽ SISTEMA DINÁMICO DE PATEADORES RETRO ⚽ ---
+    // Detectamos qué equipo está pateando en esta ronda
+    let equipoPateador = window.esTurnoP1 ? window.equipoSeleccionadoP1 : window.equipoSeleccionadoCPU;
+
+    // Creamos el sprite del pateador un toque a la izquierda del punto penal (X=360) y abajo (Y=560)
+    let pateadorSprite = escena.add.sprite(360, 395, `${equipoPateador}_pateador`);
+    pateadorSprite.setOrigin(0.5, 1); // Ancla en los pies
+    pateadorSprite.setFrame(0);       // Arranca en cuadro de Carrera
+    pateadorSprite.setDepth(4);       // ¡MÁS ARRIBA QUE LA PELOTA!: La pelota tiene Depth 3, el jugador la tapa al correr
+
+
     // --- NUEVO SISTEMA DE ZONAS DE ALCANCE DEL ARQUERO (COBERTURA MEJORADA) ---
     let celdaTiro = (rowT * 5) + colT;
     let esAtajado = false;
@@ -130,6 +141,38 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
 
     window.ball.setScale(0.5);
     window.ball.setAngle(0);
+
+        // El pateador da un paso adelante hacia la pelota (X=400) y patea (Cuadro 1)
+    escena.tweens.add({
+        targets: pateadorSprite,
+        x: 390,
+        duration: 150, // Carrera corta y rápida antes del impacto
+        onComplete: () => {
+            pateadorSprite.setFrame(1); // ¡PUM! Cuadro de impacto/patada
+        }
+    });
+
+    // Tu tween actual de la pelota viajando (Arranca en paralelo)
+    escena.tweens.add({
+        targets: window.ball, 
+        x: xT, y: yT, scaleX: 0.25, scaleY: 0.25, angle: 360, duration: 500,
+        onComplete: () => {
+            // ... Acá adentro de tu onComplete actual ...
+            
+            // Si fue GOL, hacemos que el pateador pase a su cuadro de festejo (Cuadro 2)
+            if (tipoResultado === "NORMAL" && !esAtajado) {
+                pateadorSprite.setFrame(2); 
+            }
+
+            // Destruimos al pateador para limpiar la pantalla justo cuando la pelota vuelve al punto penal
+            escena.time.delayedCall(1000, () => {
+                pateadorSprite.destroy(); // Lo borramos para que la cancha quede limpia para el próximo tiro
+                
+                // ... Tu lógica de reseteo actual (setPosition, cambiarTurno, etc.) ...
+            });
+        }
+    });
+
 
     escena.tweens.add({
         targets: window.ball, 

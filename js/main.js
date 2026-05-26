@@ -40,6 +40,11 @@ function preload() {
     this.load.image('Santos', 'players/santos.png');
     this.load.image('El Oscar', 'players/oscar.png');
     this.load.image('Caralucas', 'players/caralucas.png');
+
+        // 4. PATEADORES: Hojas de disparo con tus medidas calibradas (150x122px por cuadro)
+    this.load.spritesheet('ARG_pateador', 'players/indio_shoot.png', { frameWidth: 150, frameHeight: 122 });
+    this.load.spritesheet('BRA_pateador', 'players/rancho_shoot.png', { frameWidth: 150, frameHeight: 122 });
+
 }
 
 function create() {
