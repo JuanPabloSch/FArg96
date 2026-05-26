@@ -31,19 +31,64 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
     }
 
     // --- SISTEMA DE 7 ZONAS DE ATAJADA ---
+        // --- NUEVO SISTEMA DE ZONAS DE ALCANCE DEL ARQUERO (COBERTURA MEJORADA) ---
     let celdaTiro = (rowT * 5) + colT;
     let esAtajado = false;
 
-    if (colA === 2) { if (celdaTiro === 2 || celdaTiro === 7 || celdaTiro === 12) esAtajado = true; }
-    else if (rowA === 0 && colA < 2) { if (celdaTiro === 0 || celdaTiro === 1) esAtajado = true; }
-    else if (rowA === 1 && colA < 2) { if (celdaTiro === 5 || celdaTiro === 6) esAtajado = true; }
-    else if (rowA === 2 && colA < 2) { if (celdaTiro === 10 || celdaTiro === 11) esAtajado = true; }
-    else if (rowA === 0 && colA > 2) { if (celdaTiro === 3 || celdaTiro === 4) esAtajado = true; }
-    else if (rowA === 1 && colA > 2) { if (celdaTiro === 8 || celdaTiro === 9) esAtajado = true; }
-    else if (rowA === 2 && colA > 2) { if (celdaTiro === 13 || celdaTiro === 14) esAtajado = true; }
+    // 1. ZONA CENTRO (Celdas 2, 7, 12)
+    if (colA === 2) {
+        if (celdaTiro === 2 || celdaTiro === 7 || celdaTiro === 12) {
+            esAtajado = true;
+        }
+    }
+    // 2. ZONA ARRIBA IZQUIERDA (Celdas 0, 1, 6)
+    else if (rowA === 0 && colA < 2) {
+        if (celdaTiro === 0 || celdaTiro === 1 || celdaTiro === 6) {
+            esAtajado = true;
+        }
+    }
+    // 3. ZONA MEDIO IZQUIERDA (Celdas 5, 6)
+    else if (rowA === 1 && colA < 2) {
+        if (celdaTiro === 5 || celdaTiro === 6) {
+            esAtajado = true;
+        }
+    }
+    // 4. ZONA BAJO IZQUIERDA (Celdas 5, 10, 11)
+    else if (rowA === 2 && colA < 2) {
+        if (celdaTiro === 5 || celdaTiro === 10 || celdaTiro === 11) {
+            esAtajado = true;
+        }
+    }
+    // 5. ZONA ARRIBA DERECHA (Celdas 3, 4, 8)
+    else if (rowA === 0 && colA > 2) {
+        if (celdaTiro === 3 || celdaTiro === 4 || celdaTiro === 8) {
+            esAtajado = true;
+        }
+    }
+    // 6. ZONA MEDIO DERECHA (Celdas 8, 9)
+    else if (rowA === 1 && colA > 2) {
+        if (celdaTiro === 8 || celdaTiro === 9) {
+            esAtajado = true;
+        }
+    }
+    // 7. ZONA BAJO DERECHA (Celdas 9, 13, 14)
+    else if (rowA === 2 && colA > 2) {
+        if (celdaTiro === 9 || celdaTiro === 13 || celdaTiro === 14) {
+            esAtajado = true;
+        }
+    }
 
-    if (colT === colA && rowT === rowA) esAtajado = true;
-    if (tipoResultado !== "NORMAL") esAtajado = false;
+    // Filtro de seguridad por si coincide la celda exacta exacta
+    if (colT === colA && rowT === rowA) {
+        esAtajado = true;
+    }
+
+    // Si la pelota fue al palo o afuera, se anula la atajada
+    if (tipoResultado !== "NORMAL") {
+        esAtajado = false;
+    }
+    // --------------------------------------------------------------------------
+
     
         // --- CALIBRACIÓN DEFICITIVA DE POSICIÓN Y VUELOS DEL ARQUERO ---
     if (window.arqueroSprite) {
