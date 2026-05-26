@@ -32,14 +32,80 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
 
         // --- ⚽ SISTEMA DINÁMICO DE PATEADORES RETRO ⚽ ---
     // Detectamos qué equipo está pateando en esta ronda
-    let equipoPateador = window.esTurnoP1 ? window.equipoSeleccionadoP1 : window.equipoSeleccionadoCPU;
+        // === 🏃 REEMPLAZÁ TU BLOQUE DE TWEENS VIEJO POR ESTE EXACTO ===
+    if (window.pateadorActual) {
+        window.pateadorActual.setFrame(0); // Nos aseguramos que empiece corriendo
 
-    // Creamos el sprite del pateador un toque a la izquierda del punto penal (X=360) y abajo (Y=560)
-    let pateadorSprite = escena.add.sprite(360, 395, `${equipoPateador}_pateador`);
-    pateadorSprite.setOrigin(0.5, 1); // Ancla en los pies
-    pateadorSprite.setFrame(0);       // Arranca en cuadro de Carrera
-    pateadorSprite.setDepth(4);   
-    pateadorSprite.setScale(1.4);    // ¡MÁS ARRIBA QUE LA PELOTA!: La pelota tiene Depth 3, el jugador la tapa al correr
+        // El jugador que ya estaba quieto en la cancha mete el pique hacia adelante
+        escena.tweens.add({
+            targets: window.pateadorActual,
+            x: 390,
+            duration: 90, // Tu velocidad rápida de carrera de 90ms
+            onComplete: () => {
+                window.pateadorActual.setFrame(1); // ¡PUM! Cuadro de impacto
+
+                // En el milisegundo exacto del botinazo, la pelota sale eyectada
+                escena.tweens.add({
+                    targets: window.ball, 
+                    x: xT, y: yT, scaleX: 0.25, scaleY: 0.25, angle: 360, 
+                    duration: 350, // Tu velocidad de la pelota
+                    onStart: () => {
+                        // El festejo (Cuadro 2) arranca instantáneamente si va a ser gol
+                        if (tipoResultado === "NORMAL" && !esAtajado) {
+                            window.pateadorActual.setFrame(2); 
+                        }
+                    },
+                    onComplete: () => {
+                        if (tipoResultado === "NORMAL" && !esAtajado) {
+                            esJugador ? window.golesP1++ : window.golesCPU++;
+                            esJugador ? window.historialP1.push("GOL") : window.historialCPU.push("GOL");
+                        } else if (esAtajado) {
+                            esJugador ? window.historialP1.push("ATA") : window.historialCPU.push("ATA");
+                        } else {
+                            esJugador ? window.historialP1.push(tipoResultado) : window.historialCPU.push(tipoResultado);
+                        }
+                        
+                        let nomP1 = window.baseDeDatosEquipos[window.equipoSeleccionadoP1].nombre;
+                        let nomCPU = window.baseDeDatosEquipos[window.equipoSeleccionadoCPU].nombre;
+                        window.marcadorTexto.setText(`${nomP1} ${window.golesP1} - ${window.golesCPU} ${nomCPU}`);
+                        
+                        escena.time.delayedCall(1000, () => {
+                            window.ball.setPosition(400, 380); // Tu punto penal base
+                            window.ball.setScale(0.35); 
+                            window.ball.setAngle(0); 
+                            
+                            // Borramos el sprite visible justo cuando la pelota vuelve al punto penal
+                            if (window.pateadorActual) {
+                                window.pateadorActual.destroy();
+                                window.pateadorActual = null;
+                            }
+
+                            dibujarHUD(escena);
+                            window.ejecutandoTiro = false;
+
+                            if (esJugador) {
+                                window.esperandoAtajada = true; window.esTurnoP1 = false;
+                                actualizarRetratos(escena); iniciarBarra(escena, false);
+                            } else {
+                                window.esperandoAtajada = false; window.esTurnoP1 = true; window.ronda++;
+                                window.tuColA = 2; window.tuRowA = 1;
+                                if (verificarFinPartido()) {
+                                    escena.time.delayedCall(50, () => {
+                                        alert(`¡Tanda Finalizada!\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`);
+                                        location.reload();
+                                    });
+                                } else {
+                                    actualizarRetratos(escena); iniciarBarra(escena, true);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+    // ===============================================================
+ // ¡MÁS ARRIBA QUE LA PELOTA!: La pelota tiene Depth 3, el jugador la tapa al correr
 
 
     // --- NUEVO SISTEMA DE ZONAS DE ALCANCE DEL ARQUERO (COBERTURA MEJORADA) ---
@@ -283,6 +349,22 @@ function iniciarBarra(escena, esJugador) {
     if (window.rectArquero) { window.rectArquero.destroy(); window.rectArquero = null; }
 
     if (!esJugador) { window.zonaGolCPU = Math.floor(Math.random() * 15); }
+
+    // === ⚽ NUEVO: EL PATEADOR APARECE APENAS CARGA LA BARRA ⚽ ===
+    // Detectamos quién patea en esta ronda
+    let equipoPateador = window.esTurnoP1 ? window.equipoSeleccionadoP1 : window.equipoSeleccionadoCPU;
+    
+    // Si ya existía un pateador viejo por seguridad lo borramos antes de crear el nuevo
+    if (window.pateadorActual) { window.pateadorActual.destroy(); }
+
+    // Creamos al jugador quieto en guardia (X=360) atrás de tu pelota en 395
+    window.pateadorActual = escena.add.sprite(360, 395, `${equipoPateador}_pateador`);
+    window.pateadorActual.setOrigin(0.5, 1);
+    window.pateadorActual.setFrame(0); // Cuadro 0: Espera/Carrera (Aparece ya visible)
+    window.pateadorActual.setDepth(4); // Capa arriba de la pelota
+    window.pateadorActual.setScale(1.2); // Tu escala grande preferida
+    window.pateadorActual.texture.setFilter(Phaser.Textures.FilterMode.NEAREST); // Píxeles nítidos
+    // ==============================================================
 
     escena.tweens.add({ 
         targets: window.barraTiempo, scaleX: 0, duration: 3000, 
