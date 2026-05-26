@@ -156,7 +156,7 @@ function ejecutarDisparo(escena, colT, rowT, colA, rowA, esJugador) {
             window.marcadorTexto.setText(`${nomP1} ${window.golesP1} - ${window.golesCPU} ${nomCPU}`);
             
                         escena.time.delayedCall(1000, () => {
-                window.ball.setPosition(400, 500);
+                window.ball.setPosition(400, 380);
                 window.ball.setScale(0.5); 
                 window.ball.setAngle(0); 
                 

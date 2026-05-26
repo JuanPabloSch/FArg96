@@ -81,7 +81,7 @@ function create() {
     window.barraTiempo = this.add.rectangle(300, 550, 200, 20, 0x00ff00).setOrigin(0, 0.5);
     
     // Pelota en capa superior (Depth 3)
-    window.ball = this.add.image(400, 500, 'pelotaNueva').setScale(0.5).setDepth(3); 
+    window.ball = this.add.image(400, 380, 'pelotaNueva').setScale(0.5).setDepth(3); 
 
         // --- ARQUERO INICIAL: Arranca el arquero de la CPU en el centro ---
     let equipoAtajadorInicial = window.equipoSeleccionadoCPU; // Arranca atajando BRA
