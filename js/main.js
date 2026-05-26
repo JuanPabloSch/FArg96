@@ -65,6 +65,7 @@ function preload() {
     this.load.audio('nogol', 'assets/sfx/no_goal.mp3');
     this.load.audio('shoot', 'assets/sfx/shoot.mp3');
     this.load.audio('clank', 'assets/sfx/clank.mp3');
+    this.load.audio('creditosMusic', 'assets/sfx/creditos.mp3');
 }
 
 function create() {

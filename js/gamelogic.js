@@ -170,11 +170,11 @@ if (window.arqueroSprite) {
                             });
                         }
                         
-                        else if (esAtajado) {
-                            escena.sound.play('clank');
+                        else if (esAtajado) {                            
                             escena.sound.play('nogol');
                             esJugador ? window.historialP1.push("ATA") : window.historialCPU.push("ATA");
                         } else {
+                            escena.sound.play('clank');
                             escena.sound.play('nogol');
                             esJugador ? window.historialP1.push(tipoResultado) : window.historialCPU.push(tipoResultado);
                         }
@@ -232,7 +232,7 @@ if (window.arqueroSprite) {
                             let fondoFinal = escena.add.rectangle(400, 300, 800, 110, 0x000000, 0.75).setDepth(12);
                             
                             // Evaluamos si el jugador ganó o perdió
-                            let mensajeGanador = window.golesP1 > window.golesCPU ? "¡GANASTE EL PARTIDO!" : "¡PERDISTE EL PARTIDO!";
+                            let mensajeGanador = window.golesP1 > window.golesCPU ? "¡GANASTE EL PARTIDO, SE BAÑAN TODOS JUNTOS!" : "¡PERDISTE EL PARTIDO, SE BAÑAN TODOS JUNTOS!";
                             if (window.golesP1 === window.golesCPU) mensajeGanador = "¡EMPATE FINAL!"; // Por si hay empate
 
                             let textoResultado = escena.add.text(400, 300, `${mensajeGanador}\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`, {
@@ -254,6 +254,11 @@ if (window.arqueroSprite) {
                                 // Dibujamos tu foto limpia de creditos.png (Asegurate de precargarla como 'creditos')
                                 let fotoCreditos = escena.add.image(400, 300, 'creditos').setDisplaySize(800, 600).setDepth(14);
 
+                                escena.sound.stopAll(); // corta ambiente, goles, etc.
+                                escena.sound.play('creditosMusic', {
+                                    loop: true,
+                                    volume: 0.6
+                                });
                                 // Al hacer un clic en cualquier lado de los créditos, reinicia
                                                                 // Al hacer un clic en cualquier lado de los créditos, reinicia
                                 // Al hacer un clic en cualquier lado de los créditos, recarga directo a selección
