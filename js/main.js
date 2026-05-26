@@ -63,7 +63,7 @@ function preload() {
     this.load.audio('goal1', 'assets/sfx/goal1.mp3');
     this.load.audio('goal2', 'assets/sfx/goal2.mp3');
     this.load.audio('nogol', 'assets/sfx/no_goal.mp3');
-
+    this.load.audio('shoot', 'assets/sfx/shoot.mp3');
 }
 
 function create() {

@@ -133,7 +133,9 @@ if (window.arqueroSprite) {
             duration: 90, // Tu velocidad rápida de carrera de 90ms
             onComplete: () => {
                 window.pateadorActual.setFrame(1); // ¡PUM! Cuadro de impacto
-
+                escena.sound.play('shoot', {
+        volume: 0.7
+    });
                 // En el milisegundo exacto del botinazo, la pelota sale eyectada
                 escena.tweens.add({
                     targets: window.ball, 
