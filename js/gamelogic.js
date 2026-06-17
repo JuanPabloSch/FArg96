@@ -232,7 +232,7 @@ if (window.arqueroSprite) {
                             let fondoFinal = escena.add.rectangle(400, 300, 800, 110, 0x000000, 0.75).setDepth(12);
                             
                             // Evaluamos si el jugador ganó o perdió
-                            let mensajeGanador = window.golesP1 > window.golesCPU ? "¡GANASTE EL PARTIDO, SE BAÑAN TODOS JUNTOS!" : "¡PERDISTE EL PARTIDO, SE BAÑAN TODOS JUNTOS!";
+                            let mensajeGanador = window.golesP1 > window.golesCPU ? "¡GANASTE EL PARTIDO!" : "¡PERDISTE EL PARTIDO!";
                             if (window.golesP1 === window.golesCPU) mensajeGanador = "¡EMPATE FINAL!"; // Por si hay empate
 
                             let textoResultado = escena.add.text(400, 300, `${mensajeGanador}\nResultado: P1 ${window.golesP1} - CPU ${window.golesCPU}`, {
@@ -385,7 +385,7 @@ function iniciarBarra(escena, esJugador) {
     // ==============================================================
 
     escena.tweens.add({ 
-        targets: window.barraTiempo, scaleX: 0, duration: 3000, 
+        targets: window.barraTiempo, scaleX: 0, duration: 4000, 
         onComplete: () => {
             if (esJugador) {
                 window.ejecutandoTiro = true;
