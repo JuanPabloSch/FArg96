@@ -315,6 +315,51 @@ if (window.arqueroSprite) {
 }
 }
 
+function iniciarPartido(escena) {
+    // 1. LIMPIAR PANTALLA DE SELECCIÓN
+    escena.children.getAll().forEach(obj => {
+        if (obj.depth >= 100) obj.destroy();
+    });
+
+    // 2. DETENER MÚSICA DEL MENÚ
+    // Esta es la clave: buscamos la música del menú y la frenamos
+    let musicaMenu = escena.sound.get('musicaMenu');
+    if (musicaMenu && musicaMenu.isPlaying) {
+        musicaMenu.stop();
+    }
+
+    let datosP1 = window.baseDeDatosEquipos[window.equipoSeleccionadoP1];
+    let datosCPU = window.baseDeDatosEquipos[window.equipoSeleccionadoCPU];
+
+    window.marcadorTexto.setText(`${datosP1.nombre} 0 - 0 ${datosCPU.nombre}`);
+
+    // Como usamos la nomenclatura ${id}_idle, esto funcionará perfecto
+    if (window.arqueroSprite) {
+        window.arqueroSprite.setTexture(`${window.equipoSeleccionadoCPU}_idle`);
+        window.arqueroSprite.setFrame(0);
+    }
+
+    window.pantallaActual = "PARTIDO";
+    actualizarRetratos(escena);
+    
+    // 4. SONIDO DE AMBIENTE MEJORADO
+let sonido = escena.sound.get('ambientePartido');
+
+if (sonido) {
+    // Si el objeto existe, nos aseguramos de que suene
+    if (!sonido.isPlaying) {
+        sonido.play({ loop: true, volume: 0.4 });
+    }
+} else {
+    // Si por alguna razón el objeto 'ambientePartido' no existe en cache, lo intentamos reproducir directamente
+    // Esto es un "fallthrough" por si hubo un error de carga previo
+    escena.sound.play('ambientePartido', { loop: true, volume: 0.4 });
+    console.warn("El sonido 'ambientePartido' no fue encontrado en cache, se intentó lanzar directamente.");
+}
+    
+    iniciarBarra(escena, true);
+}
+
 function iniciarBarra(escena, esJugador) {
     window.barraTiempo.scaleX = 1;
     escena.tweens.killTweensOf(window.barraTiempo);

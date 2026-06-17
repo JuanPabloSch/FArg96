@@ -20,44 +20,31 @@ let imagenInicio;
 let imagenSeleccion;
 
 function preload() {
-    // 0. Cargar fotos de los menús
+    // 0. Cargar assets fijos (Menús, cancha, pelota, créditos)
     this.load.image('fotoInicio', 'bg/inicio.png');
     this.load.image('fotoSeleccion', 'bg/seleccion.png');
-
-    // 1. Cargar fondo de cancha y pelota
     this.load.image('fondoCancha', 'bg/penales.png');
-    this.load.image('pelotaNueva', 'assets/pelota.png'); 
-
-    // 2. NUEVA CARGA RETRO GENERAL DE CUERPOS (185x138px)
-    // Hojas de Argentina (Indio Malo - El Negrouu)
-    this.load.spritesheet('ARG_idle', 'players/negrouu_idle.png', { frameWidth: 110, frameHeight: 140 });
-    this.load.spritesheet('ARG_vuelo', 'players/negrouu_vuelo.png', { frameWidth: 190, frameHeight: 140 });
-
-    // Hojas de Brasil (Ranchos FC - Rolo)
-    this.load.spritesheet('BRA_idle', 'players/rolo_idle.png', { frameWidth: 110, frameHeight: 140 });
-    this.load.spritesheet('BRA_vuelo', 'players/rolo_vuelo.png', { frameWidth: 190, frameHeight: 140 });
-
-    // 3. Carga de fotos para los retratos estáticos del HUD
-    this.load.image('El Negrouu', 'players/negrouu.png');
-    this.load.image('Sebu', 'players/sebu.png');
-    this.load.image('Chino', 'players/chino.png');
-    this.load.image('Juano', 'players/juano.png');
-    this.load.image('Nahui', 'players/nahui.png');
-
-    this.load.image('Rolo', 'players/rolo.png');
-    this.load.image('El Gibe', 'players/gibe.png');
-    this.load.image('Santos', 'players/santos.png');
-    this.load.image('El Oscar', 'players/oscar.png');
-    this.load.image('Caralucas', 'players/caralucas.png');
-
-    // 4. PATEADORES: Hojas de disparo con tus medidas calibradas (150x122px por cuadro)
-    this.load.spritesheet('ARG_pateador', 'players/indio_shoot.png', { frameWidth: 150, frameHeight: 122 });
-    this.load.spritesheet('BRA_pateador', 'players/rancho_shoot.png', { frameWidth: 150, frameHeight: 122 });
-
-    // 5. Carga de pantalla de créditos
+    this.load.image('pelotaNueva', 'assets/pelota.png');
     this.load.image('creditos', 'bg/creditos.png');
 
-        // --- 🔊 CARGA DE MÚSICA DE MENÚ ---
+    // 1. CARGA DINÁMICA DE EQUIPOS
+        Object.keys(window.baseDeDatosEquipos).forEach(id => {
+        let e = window.baseDeDatosEquipos[id];
+        
+        // Carga sprites usando los nombres definidos en tu base de datos
+        this.load.spritesheet(`${id}_idle`, `players/${e.sprites.idle}.png`, { frameWidth: 110, frameHeight: 140 });
+        this.load.spritesheet(`${id}_vuelo`, `players/${e.sprites.vuelo}.png`, { frameWidth: 190, frameHeight: 140 });
+        this.load.spritesheet(`${id}_pateador`, `players/${e.sprites.shoot}.png`, { frameWidth: 150, frameHeight: 122 });
+
+        // Carga retratos
+        this.load.image(e.arquero, `teams/${e.carpeta}/${e.arquero.toLowerCase().replace(' ', '')}.png`);
+        e.pateadores.forEach(p => {
+            this.load.image(p, `teams/${e.carpeta}/${p.toLowerCase().replace(' ', '')}.png`);
+        });
+    });
+
+
+    // 2. Carga de audio (Esto no cambia)
     this.load.audio('musicaMenu', 'assets/sfx/menu.mp3');
     this.load.audio('ambientePartido', 'assets/sfx/ambiente.mp3');
     this.load.audio('goal1', 'assets/sfx/goal1.mp3');
@@ -165,57 +152,36 @@ function create() {
         if (!escena.sound.get('musicaMenu')) {
             escena.sound.play('musicaMenu', { loop: true, volume: 0.5 });
         }
-        imagenSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100);
+// 1. Fondo del menú
+    let imagenSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100);
+    
+    // 2. Generar botones dinámicos
+    let equipos = Object.keys(window.baseDeDatosEquipos);
+    equipos.forEach((idEquipo, index) => {
+        let x = 150 + (index % 3) * 250;
+        let y = 200 + Math.floor(index / 3) * 200;
         
-        let zonaIndioMalo = escena.add.rectangle(270, 540, 380, 480, 0xffffff, 0.0).setInteractive().setDepth(101);
-        let zonaRanchosFC = escena.add.rectangle(720, 540, 380, 480, 0xffffff, 0.0).setInteractive().setDepth(101);
-
-                // Si elige INDIO MALO
-        zonaIndioMalo.on('pointerdown', () => {
-            escena.sound.stopAll(); // Frenamos la música del menú
-
-            // === 🏟️ ARRANCAMOS EL AMBIENTE DE TRIBUNA EN LOOP ===
-            escena.sound.play('ambientePartido', { loop: true, volume: 0.4 });
-
-            window.equipoSeleccionadoP1 = "ARG";
-            window.equipoSeleccionadoCPU = "BRA";
+        // Botón táctil grande
+        let boton = escena.add.rectangle(x, y, 200, 150, 0xffffff, 0.2)
+            .setStrokeStyle(4, 0xffffff)
+            .setInteractive({ useHandCursor: true })
+            .setDepth(101);
             
-            if (window.arqueroSprite) { window.arqueroSprite.destroy(); }
-            window.arqueroSprite = escena.add.sprite(400, 230, 'BRA_idle');
-            window.arqueroSprite.setOrigin(0.5, 1).setScale(1).setFrame(0).setDepth(1);
+        escena.add.text(x, y, window.baseDeDatosEquipos[idEquipo].nombre, { 
+            fontSize: '20px', fill: '#ffffff', fontStyle: 'bold' 
+        }).setOrigin(0.5).setDepth(102);
 
-            actualizarRetratos(escena); 
-            zonaIndioMalo.destroy();
-            zonaRanchosFC.destroy();
-            imagenSeleccion.destroy();
+        boton.on('pointerdown', () => {
+            // Lógica de selección
+            window.equipoSeleccionadoP1 = idEquipo;
+            // Elegir un rival al azar que no sea el mismo
+            let posiblesRivales = equipos.filter(e => e !== idEquipo);
+            window.equipoSeleccionadoCPU = posiblesRivales[Math.floor(Math.random() * posiblesRivales.length)];
             
-            window.pantallaActual = "PARTIDO";
-            iniciarBarra(escena, true);
+            iniciarPartido(escena); // Función para limpiar el menú e iniciar
         });
-
-        // Si elige RANCHOS FC
-        zonaRanchosFC.on('pointerdown', () => {
-            escena.sound.stopAll(); // Frenamos la música del menú
-
-            // === 🏟️ ARRANCAMOS EL AMBIENTE DE TRIBUNA EN LOOP ===
-            escena.sound.play('ambientePartido', { loop: true, volume: 0.4 });
-
-            window.equipoSeleccionadoP1 = "BRA";
-            window.equipoSeleccionadoCPU = "ARG";
-            
-            if (window.arqueroSprite) { window.arqueroSprite.destroy(); }
-            window.arqueroSprite = escena.add.sprite(400, 230, 'ARG_idle');
-            window.arqueroSprite.setOrigin(0.5, 1).setScale(1).setFrame(0).setDepth(1);
-
-            actualizarRetratos(escena); 
-            zonaIndioMalo.destroy();
-            zonaRanchosFC.destroy();
-            imagenSeleccion.destroy();
-            
-            window.pantallaActual = "PARTIDO";
-            iniciarBarra(escena, true);
-        });
-    }
+    });
+}
 
 
     // === CONTROL INTELIGENTE DE ARRANQUE POR URL ===
