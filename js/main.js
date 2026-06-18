@@ -20,27 +20,28 @@ let imagenInicio;
 let imagenSeleccion;
 
 function preload() {
-    // 0. Cargar assets fijos (Menús, cancha, pelota, créditos)
     this.load.image('fotoInicio', 'bg/inicio.png');
     this.load.image('fotoSeleccion', 'bg/seleccion.png');
     this.load.image('fondoCancha', 'bg/penales.png');
     this.load.image('pelotaNueva', 'assets/pelota.png');
     this.load.image('creditos', 'bg/creditos.png');
 
-
     Object.keys(window.baseDeDatosEquipos).forEach(id => {
         let e = window.baseDeDatosEquipos[id];
         
-        // Carga sprites usando los nombres definidos en tu base de datos
-        this.load.spritesheet(`${id}_idle`, `players/${e.sprites.idle}.png`, { frameWidth: 110, frameHeight: 140 });
-        this.load.spritesheet(`${id}_vuelo`, `players/${e.sprites.vuelo}.png`, { frameWidth: 190, frameHeight: 140 });
-        this.load.spritesheet(`${id}_pateador`, `players/${e.sprites.shoot}.png`, { frameWidth: 150, frameHeight: 122 });
+        // Spritesheets
+        this.load.spritesheet(`${id}_idle`, `teams/${e.carpeta}/${e.sprites.idle}.png`, { frameWidth: 110, frameHeight: 140 });
+        this.load.spritesheet(`${id}_vuelo`, `teams/${e.carpeta}/${e.sprites.vuelo}.png`, { frameWidth: 190, frameHeight: 140 });
+        this.load.spritesheet(`${id}_pateador`, `teams/${e.carpeta}/${e.sprites.shoot}.png`, { frameWidth: 150, frameHeight: 122 });
 
-        // Carga retratos
+        // Retratos
         this.load.image(e.arquero, `teams/${e.carpeta}/${e.arquero.toLowerCase().replace(' ', '')}.png`);
         e.pateadores.forEach(p => {
             this.load.image(p, `teams/${e.carpeta}/${p.toLowerCase().replace(' ', '')}.png`);
         });
+
+        // ESCUDOS: Esto SIEMPRE debe estar dentro del forEach para que 'id' exista
+        this.load.image('escudo_' + id, `teams/${e.carpeta}/escudo.png`);
     });
 
 
@@ -146,39 +147,41 @@ function create() {
     // 📺 GESTIÓN VISUAL DE CAPAS SOBRE EL JUEGO BASE
     // =======================================================
     
-    function mostrarPantallaSeleccion() {
+    function mostrarPantallaSeleccion(escena) {
+    if (!escena.sound.get('musicaMenu')) {
+        escena.sound.play('musicaMenu', { loop: true, volume: 0.5 });
+    }
 
-        // --- 🎵 ARRANCAR MÚSICA CON LOOP REPETITIVO ---
-        if (!escena.sound.get('musicaMenu')) {
-            escena.sound.play('musicaMenu', { loop: true, volume: 0.5 });
-        }
-// 1. Fondo del menú
     let imagenSeleccion = escena.add.image(400, 300, 'fotoSeleccion').setDisplaySize(800, 600).setDepth(100);
     
-    // 2. Generar botones dinámicos
     let equipos = Object.keys(window.baseDeDatosEquipos);
     equipos.forEach((idEquipo, index) => {
         let x = 150 + (index % 3) * 250;
         let y = 200 + Math.floor(index / 3) * 200;
         
-        // Botón táctil grande
         let boton = escena.add.rectangle(x, y, 200, 150, 0xffffff, 0.2)
             .setStrokeStyle(4, 0xffffff)
             .setInteractive({ useHandCursor: true })
             .setDepth(101);
             
-        escena.add.text(x, y, window.baseDeDatosEquipos[idEquipo].nombre, { 
+        // --- AQUÍ DIBUJAMOS EL ESCUDO ---
+        if (escena.textures.exists('escudo_' + idEquipo)) {
+            escena.add.image(x, y - 20, 'escudo_' + idEquipo)
+                .setDisplaySize(80, 80)
+                .setDepth(102);
+        }
+
+        escena.add.text(x, y + 50, window.baseDeDatosEquipos[idEquipo].nombre, { 
             fontSize: '20px', fill: '#ffffff', fontStyle: 'bold' 
         }).setOrigin(0.5).setDepth(102);
 
         boton.on('pointerdown', () => {
-            // Lógica de selección
             window.equipoSeleccionadoP1 = idEquipo;
-            // Elegir un rival al azar que no sea el mismo
             let posiblesRivales = equipos.filter(e => e !== idEquipo);
             window.equipoSeleccionadoCPU = posiblesRivales[Math.floor(Math.random() * posiblesRivales.length)];
             
-            iniciarPartido(escena); // Función para limpiar el menú e iniciar
+            imagenSeleccion.destroy();
+            iniciarPartido(escena); 
         });
     });
 }
@@ -226,7 +229,7 @@ if (urlParams.get('saltarInicio') === 'true') {
         imagenInicio.destroy();
 
         window.pantallaActual = "SELECCION";
-        mostrarPantallaSeleccion();
+        mostrarPantallaSeleccion(this);
     });
 }
 
