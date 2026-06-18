@@ -27,27 +27,23 @@ function preload() {
     this.load.image('pelotaNueva', 'assets/pelota.png');
     this.load.image('creditos', 'bg/creditos.png');
 
-    // 1. CARGA DINÁMICA DE EQUIPOS
-    // Recorremos las claves de tu base de datos (LAN, BOK, RIV, etc.)
-    Object.keys(window.baseDeDatosEquipos).forEach(id => {
-        // Spritesheets de Jugadores (Arquero)
-        this.load.spritesheet(`${id}_idle`, `players/${id}_idle.png`, { frameWidth: 110, frameHeight: 140 });
-        this.load.spritesheet(`${id}_vuelo`, `players/${id}_vuelo.png`, { frameWidth: 190, frameHeight: 140 });
-        
-        // Pateadores
-        this.load.spritesheet(`${id}_pateador`, `players/${id}_shoot.png`, { frameWidth: 150, frameHeight: 122 });
 
-        // Retratos de los jugadores (Arquero y Pateadores)
-        let equipo = window.baseDeDatosEquipos[id];
+    Object.keys(window.baseDeDatosEquipos).forEach(id => {
+        let e = window.baseDeDatosEquipos[id];
         
-        // Cargar arquero
-        this.load.image(equipo.arquero, `teams/${id.toLowerCase()}/${equipo.arquero.toLowerCase().replace(' ', '_')}.png`);
-        
-        // Cargar pateadores
-        equipo.pateadores.forEach(nombre => {
-            this.load.image(nombre, `teams/${id.toLowerCase()}/${nombre.toLowerCase().replace(' ', '_')}.png`);
+        // Carga sprites usando los nombres definidos en tu base de datos
+        this.load.spritesheet(`${id}_idle`, `players/${e.sprites.idle}.png`, { frameWidth: 110, frameHeight: 140 });
+        this.load.spritesheet(`${id}_vuelo`, `players/${e.sprites.vuelo}.png`, { frameWidth: 190, frameHeight: 140 });
+        this.load.spritesheet(`${id}_pateador`, `players/${e.sprites.shoot}.png`, { frameWidth: 150, frameHeight: 122 });
+
+        // Carga retratos
+        this.load.image(e.arquero, `teams/${e.carpeta}/${e.arquero.toLowerCase().replace(' ', '')}.png`);
+        e.pateadores.forEach(p => {
+            this.load.image(p, `teams/${e.carpeta}/${p.toLowerCase().replace(' ', '')}.png`);
         });
     });
+
+
 
     // 2. Carga de audio (Esto no cambia)
     this.load.audio('musicaMenu', 'assets/sfx/menu.mp3');
