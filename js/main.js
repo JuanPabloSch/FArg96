@@ -26,6 +26,8 @@ function preload() {
     this.load.image('pelotaNueva', 'assets/pelota.png');
     this.load.image('creditos', 'bg/creditos.png');
 
+    this.load.audio('introSound', 'assets/sfx/intro.mp3');
+
     Object.keys(window.baseDeDatosEquipos).forEach(id => {
         let e = window.baseDeDatosEquipos[id];
         
@@ -223,14 +225,24 @@ if (urlParams.get('saltarInicio') === 'true') {
         repeat: -1
     });
 
-    imagenInicio.on('pointerdown', () => {
+imagenInicio.on('pointerdown', () => {
+        // 1. Reproducir el sonido inmediatamente al hacer clic
+        this.sound.play('introSound', { volume: 0.8 });
 
-        textoContinuar.destroy();
-        imagenInicio.destroy();
+        // 2. Crear una pequeña pausa de 500 milisegundos (medio segundo)
+        // antes de ejecutar el cambio de pantalla
+        this.time.delayedCall(2500, () => {
+            
+            // 3. Verificamos que los objetos existan antes de destruirlos (buena práctica)
+            if (textoContinuar) textoContinuar.destroy();
+            if (imagenInicio) imagenInicio.destroy();
 
-        window.pantallaActual = "SELECCION";
-        mostrarPantallaSeleccion(this);
+            window.pantallaActual = "SELECCION";
+            mostrarPantallaSeleccion(this);
+            
+        });
     });
 }
-
 }
+
+
