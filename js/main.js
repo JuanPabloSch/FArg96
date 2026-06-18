@@ -44,7 +44,6 @@ function preload() {
     });
 
 
-
     // 2. Carga de audio (Esto no cambia)
     this.load.audio('musicaMenu', 'assets/sfx/menu.mp3');
     this.load.audio('ambientePartido', 'assets/sfx/ambiente.mp3');
